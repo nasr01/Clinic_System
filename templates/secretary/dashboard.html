@@ -1,0 +1,233 @@
+{% extends 'base_secretary.html' %}
+
+{% block title %}لوحة تحكم السكرتارية - نظام إدارة العيادة{% endblock %}
+
+{% block page_title %}لوحة التحكم{% endblock %}
+{% block page_subtitle %}صباح الخير، {{ user.full_name|default:user.username }}{% endblock %}
+
+{% block content %}
+
+<div class="stats-grid">
+    <div class="stat-card primary">
+        <div class="stat-header">
+            <div class="stat-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+            </div>
+            <span class="stat-badge">إجمالي</span>
+        </div>
+        <div class="stat-label">إجمالي مرضى اليوم</div>
+        <div class="stat-value">{{ total_patients }}</div>
+        <div class="stat-change neutral">
+            <span>عدد المرضى المسجلين اليوم</span>
+        </div>
+    </div>
+
+    <div class="stat-card warning">
+        <div class="stat-header">
+            <div class="stat-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+            </div>
+            <span class="stat-badge">قيد الانتظار</span>
+        </div>
+        <div class="stat-label">في الانتظار</div>
+        <div class="stat-value">{{ waiting_patients }}</div>
+        <div class="stat-change {% if waiting_patients > 0 %}positive{% else %}neutral{% endif %}">
+            {% if waiting_patients > 0 %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                </svg>
+                يحتاجون إلى الكشف
+            {% else %}
+                لا يوجد مرضى في الانتظار
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="stat-card info">
+        <div class="stat-header">
+            <div class="stat-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+            </div>
+            <span class="stat-badge">جاري</span>
+        </div>
+        <div class="stat-label">جاري الكشف</div>
+        <div class="stat-value">{{ in_examination_patients }}</div>
+        <div class="stat-change {% if in_examination_patients > 0 %}positive{% else %}neutral{% endif %}">
+            {% if in_examination_patients > 0 %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                </svg>
+                الكشف جاري الآن
+            {% else %}
+                لا يوجد كشف جاري
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="stat-card success">
+        <div class="stat-header">
+            <div class="stat-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            </div>
+            <span class="stat-badge">مكتمل</span>
+        </div>
+        <div class="stat-label">تم الكشف</div>
+        <div class="stat-value">{{ completed_patients }}</div>
+        <div class="stat-change positive">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+            </svg>
+            عدد الكشوفات المكتملة
+        </div>
+    </div>
+</div>
+
+<div class="grid-row cols-2">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <span class="card-title-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10"/>
+                        <line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                </span>
+                توزيع حالات المرضى اليوم
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="doughnut-chart-wrapper">
+                {% with chart_data='[{"label":"في الانتظار","value":'|add:waiting_patients|add:',"color":"#C9A84C"},{"label":"جاري الكشف","value":'|add:in_examination_patients|add:',"color":"#2E5787"},{"label":"تم الكشف","value":'|add:completed_patients|add:',"color":"#2D7A5E"}]' %}
+                <canvas data-doughnut='{{ chart_data|safe }}' width="260" height="260"></canvas>
+                <div class="doughnut-center">
+                    <div class="doughnut-center-value">{{ total_patients }}</div>
+                    <div class="doughnut-center-label">إجمالي المرضى</div>
+                </div>
+                {% endwith %}
+            </div>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <span class="legend-color" style="background:#C9A84C;"></span>
+                    <span>في الانتظار ({{ waiting_patients }})</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background:#2E5787;"></span>
+                    <span>جاري الكشف ({{ in_examination_patients }})</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background:#2D7A5E;"></span>
+                    <span>تم الكشف ({{ completed_patients }})</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="quick-action-card">
+        <div class="quick-action-content">
+            <div class="quick-action-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="8.5" cy="7" r="4"/>
+                    <line x1="20" y1="8" x2="20" y2="14"/>
+                    <line x1="23" y1="11" x2="17" y2="11"/>
+                </svg>
+            </div>
+            <h2 class="quick-action-title">إضافة مريض جديد</h2>
+            <p class="quick-action-desc">
+                قم بتسجيل مريض جديد في قائمة الانتظار. سيتم توليد رقم الانتظار تلقائيًا حسب تاريخ اليوم.
+            </p>
+            <a href="{% url 'add_patient' %}" class="quick-action-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                تسجيل مريض جديد
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">
+            <span class="card-title-icon" style="background:#D7E7F7;color:#375391;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+            </span>
+            آخر المرضى المسجلين
+        </h2>
+        <a href="{% url 'secretary_patients' %}" class="btn btn-primary btn-sm">
+            عرض الكل
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </a>
+    </div>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>رقم الانتظار</th>
+                    <th>اسم المريض</th>
+                    <th>العمر</th>
+                    <th>رقم الهاتف</th>
+                    <th>وقت التسجيل</th>
+                    <th>الحالة</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in today_patients|slice:":6" %}
+                <tr>
+                    <td>
+                        <span class="queue-number">#{{ patient.queue_number }}</span>
+                    </td>
+                    <td style="font-weight:600;color:#21354C;">{{ patient.name }}</td>
+                    <td>{{ patient.age }} سنة</td>
+                    <td style="direction:ltr;unicode-bidi:embed;">{{ patient.phone }}</td>
+                    <td>{{ patient.created_at|date:"h:i A" }}</td>
+                    <td>
+                        <span class="status-badge status-{{ patient.status }}">
+                            {{ patient.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                </svg>
+                            </div>
+                            <div class="empty-state-title">لا يوجد مرضى اليوم</div>
+                            <div class="empty-state-desc">لم يتم تسجيل أي مرضى حتى الآن. ابدأ بتسجيل مريض جديد.</div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>تسجيل الدخول - نظام إدارة العيادة</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/login.css' %}" />
+  </head>
+  <body>
+    <div class="login-wrapper">
+      <div class="login-pattern"></div>
+
+      <div class="login-container">
+        <div class="login-card">
+          <div class="login-header">
+            <div class="login-logo">
+              <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </div>
+            <h1 class="login-title">عيادة المبارك</h1>
+            <p class="login-subtitle">نظام إدارة العيادة الإلكتروني</p>
+          </div>
+
+          <div class="login-body">
+            {% if error %}
+              <div class="alert-error">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                {{ error }}
+              </div>
+            {% endif %}
+
+            <form method="post" novalidate>
+              {% csrf_token %}
+              <div>
+                <label for="clinic_slug">معرف العيادة</label>
+
+                <input type="text" id="clinic_slug" name="clinic_slug" value="{{ clinic_slug|default:'' }}" placeholder="مثال: alshifa" required />
+              </div>
+              <div class="login-form-group">
+                <label class="login-form-label" for="id_username">اسم المستخدم</label>
+                <div class="login-input-wrapper">
+                  <input type="text" id="id_username" name="username" class="login-input" placeholder="أدخل اسم المستخدم" required autocomplete="username" autofocus />
+                  <span class="login-input-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+
+              <div class="login-form-group">
+                <label class="login-form-label" for="id_password">كلمة المرور</label>
+                <div class="login-input-wrapper">
+                  <input type="password" id="id_password" name="password" class="login-input" placeholder="أدخل كلمة المرور" required autocomplete="current-password" />
+                  <span class="login-input-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+
+              <button type="submit" class="login-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                  <polyline points="10 17 15 12 10 7" />
+                  <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>تسجيل الدخول
+              </button>
+            </form>
+
+            <div class="login-footer">
+              <p class="login-footer-text">
+                مرحبًا بك في <strong>نظام إدارة العيادة</strong>
+              </p>
+              <div class="login-decorative-dots">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,262 @@
+{% extends 'base_doctor.html' %}
+
+{% block title %}إدارة الموظفين - نظام إدارة العيادة{% endblock %}
+
+{% block page_title %}إدارة الموظفين{% endblock %}
+{% block page_subtitle %}إدارة حسابات السكرتارية وسجلات الحضور{% endblock %}
+
+{% block content %}
+
+<div class="grid-row cols-2" style="grid-template-columns:1.4fr 1fr;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <span class="card-title-icon" style="background:#D7E7F7;color:#2E5787;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <line x1="19" y1="8" x2="19" y2="14"/>
+                        <line x1="22" y1="11" x2="16" y2="11"/>
+                    </svg>
+                </span>
+                الموظفون الحاليون
+            </h2>
+            <span style="font-size:13px;font-weight:600;background:#D7E7F7;color:#2E5787;padding:5px 12px;border-radius:20px;">
+                {{ employees|length }} موظف
+            </span>
+        </div>
+        <div class="card-body">
+            {% if employees %}
+            <div style="display:flex;flex-direction:column;gap:14px;">
+                {% for emp in employees %}
+                <div class="employee-card" data-modal-target="empModal-{{ emp.id }}" onclick="openEmployeeModal('{{ emp.id }}', '{{ emp.username|escapejs }}', '{{ emp.full_name|escapejs }}', {% if emp.is_active %}1{% else %}0{% endif %}, '{{ emp.date_joined|date:"j F Y" }}')">
+                    <div class="employee-header">
+                        <div class="employee-avatar">
+                            {{ emp.full_name|slice:":1" }}
+                        </div>
+                        <div class="employee-details" style="flex:1;">
+                            <h4>{{ emp.full_name|default:emp.username }}</h4>
+                            <p>@{{ emp.username }} · سكرتير</p>
+                        </div>
+                        <span style="padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;background:{% if emp.is_active %}#DBFDF2;color:#2D7A5E;{% else %}#FEE2E2;color:#E87070;{% endif %}">
+                            {% if emp.is_active %}نشط{% else %}غير نشط{% endif %}
+                        </span>
+                    </div>
+                    <div class="employee-meta">
+                        <div class="employee-meta-item">
+                            <span class="employee-meta-label">اسم المستخدم</span>
+                            <span class="employee-meta-value">{{ emp.username }}</span>
+                        </div>
+                        <div class="employee-meta-item">
+                            <span class="employee-meta-label">تاريخ الإنشاء</span>
+                            <span class="employee-meta-value">{{ emp.date_joined|date:"j/n/Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#8C9FB4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                    </svg>
+                </div>
+                <div class="empty-state-title">لا يوجد موظفون بعد</div>
+                <div class="empty-state-desc">لم يتم إضافة أي موظفين حتى الآن. يمكنك إضافة سكرتير جديد من النموذج على اليسار.</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <span class="card-title-icon" style="background:#2E5787;color:white;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </span>
+                إضافة سكرتير جديد
+            </h2>
+        </div>
+        <div class="card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% if form_errors %}
+                <div class="alert alert-error">
+                    <span class="alert-icon">✕</span>
+                    يرجى مراجعة الأخطاء أدناه
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label class="form-label" for="id_emp_full_name">
+                        اسم الموظف
+                        <span class="required">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="id_emp_full_name"
+                        name="full_name"
+                        class="form-input {% if form_errors.full_name %}error{% endif %}"
+                        placeholder="أدخل اسم الموظف الكامل"
+                        value="{{ form_data.full_name|default:'' }}"
+                        required
+                    >
+                    {% if form_errors.full_name %}
+                    <span class="form-error">{{ form_errors.full_name }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_emp_username">
+                        اسم المستخدم
+                        <span class="required">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="id_emp_username"
+                        name="username"
+                        class="form-input {% if form_errors.username %}error{% endif %}"
+                        placeholder="مثال: ahmed_secretary"
+                        value="{{ form_data.username|default:'' }}"
+                        required
+                    >
+                    {% if form_errors.username %}
+                    <span class="form-error">{{ form_errors.username }}</span>
+                    {% endif %}
+                    <span class="form-help">يستخدم للمرة الأولى لتسجيل الدخول</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_emp_password">
+                        كلمة المرور
+                        <span class="required">*</span>
+                    </label>
+                    <input
+                        type="password"
+                        id="id_emp_password"
+                        name="password"
+                        class="form-input {% if form_errors.password %}error{% endif %}"
+                        placeholder="أدخل كلمة المرور"
+                        required
+                        minlength="6"
+                    >
+                    {% if form_errors.password %}
+                    <span class="form-error">{{ form_errors.password }}</span>
+                    {% endif %}
+                    <span class="form-help">يجب أن تكون 6 أحرف على الأقل</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_emp_password2">
+                        تأكيد كلمة المرور
+                        <span class="required">*</span>
+                    </label>
+                    <input
+                        type="password"
+                        id="id_emp_password2"
+                        name="password_confirm"
+                        class="form-input"
+                        placeholder="أعد إدخال كلمة المرور"
+                        required
+                        minlength="6"
+                    >
+                </div>
+
+                <button type="submit" name="create_employee" class="btn btn-primary btn-block btn-lg" style="margin-top:8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    إنشاء الحساب
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% for emp in employees %}
+<div class="modal-backdrop" id="empModal-{{ emp.id }}">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <span style="width:36px;height:36px;border-radius:10px;background:#D7E7F7;color:#2E5787;display:flex;align-items:center;justify-content:center;font-size:18px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                </span>
+                سجل حضور: {{ emp.full_name|default:emp.username }}
+            </h3>
+            <button class="modal-close" type="button" data-modal-close aria-label="إغلاق">
+                ✕
+            </button>
+        </div>
+        <div class="modal-body">
+            {% with emp.attendances.all|slice:":15" as attendances %}
+            {% if attendances %}
+            <div class="attendance-history-list">
+                {% for att in attendances %}
+                <div class="attendance-history-item">
+                    <div class="attendance-history-date">
+                        {{ att.date|date:"l j/n/Y" }}
+                    </div>
+                    <div class="attendance-history-time in">
+                        <span class="dot"></span>
+                        <strong>حضر:</strong>
+                        {% if att.check_in %}{{ att.check_in|date:"h:i A" }}{% else %}-{% endif %}
+                    </div>
+                    <div class="attendance-history-time out">
+                        <span class="dot"></span>
+                        <strong>انصرف:</strong>
+                        {% if att.check_out %}{{ att.check_out|date:"h:i A" }}{% else %}-{% endif %}
+                    </div>
+                    <div class="attendance-history-duration">
+                        {{ att.work_duration }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state" style="padding:40px 10px;">
+                <div class="empty-state-icon" style="font-size:52px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#8C9FB4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                </div>
+                <div class="empty-state-title">لا يوجد سجلات حضور</div>
+                <div class="empty-state-desc">لم يسجل هذا الموظف أي حضور حتى الآن.</div>
+            </div>
+            {% endif %}
+            {% endwith %}
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-modal-close>
+                إغلاق
+            </button>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+function openEmployeeModal(id, username, name, active, created) {
+    var modal = document.getElementById('empModal-' + id);
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+</script>
+
+{% endblock %}
