@@ -88,6 +88,7 @@
                 <tr>
                     <th>رقم الانتظار</th>
                     <th>اسم المريض</th>
+                    <th>نوع الزيارة</th>
                     <th>العمر</th>
                     <th>رقم الهاتف</th>
                     <th>وقت الوصول</th>
@@ -102,6 +103,24 @@
                         <span class="queue-number">#{{ patient.queue_number }}</span>
                     </td>
                     <td style="font-weight:600;color:#21354C;font-size:14.5px;">{{ patient.name }}</td>
+                    <td>
+                        {% if patient.visit_type == 'examination' %}
+                            <span class="status-badge" style="background:#DBFDF2;color:#2D7A5E;border:1px solid rgba(45, 122, 94, 0.16);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-left:4px;">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                    <polyline points="22 4 12 14.01 9 11.01"/>
+                                </svg>
+                                كشف
+                            </span>
+                        {% else %}
+                            <span class="status-badge" style="background:#D7E7F7;color:#2E5787;border:1px solid rgba(46, 87, 135, 0.16);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-left:4px;">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                استشارة
+                            </span>
+                        {% endif %}
+                    </td>
                     <td>{{ patient.age }} سنة</td>
                     <td style="direction:ltr;unicode-bidi:embed;">{{ patient.phone }}</td>
                     <td>{{ patient.created_at|date:"h:i A" }}</td>
@@ -111,39 +130,28 @@
                         </span>
                     </td>
                     <td>
-                        {% if patient.status == "waiting" %}
-                            <form method="post" action="{% url 'start_examination' patient.id %}" class="patient-action-form">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-warning btn-sm" data-confirm="هل تريد بدء الكشف للمريض {{ patient.name }}؟">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                        <polygon points="5 3 19 12 5 21 5 3"/>
-                                    </svg>
-                                    بدء الكشف
-                                </button>
-                            </form>
-                        {% elif patient.status == "in_examination" %}
-                            <form method="post" action="{% url 'complete_examination' patient.id %}" class="patient-action-form">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-success btn-sm" data-confirm="هل تريد إنهاء الكشف للمريض {{ patient.name }}؟">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                        <polyline points="20 6 9 17 4 12"/>
-                                    </svg>
-                                    إنهاء الكشف
-                                </button>
-                            </form>
-                        {% elif patient.status == "completed" %}
-                            <span style="display:inline-flex;align-items:center;gap:7px;padding:8px 14px;background:#F8F9FA;border-radius:10px;font-size:12.5px;font-weight:600;color:#8C9FB4;border:1px solid #EDEEEF;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:#2D7A5E;">
-                                    <polyline points="20 6 9 17 4 12"/>
-                                </svg>
-                                تم الانتهاء
-                            </span>
-                        {% endif %}
+                        <div class="table-action-buttons">
+                            <a href="{% url 'doctor_patient_detail' patient.id %}" class="btn btn-primary btn-sm">
+                                عرض التفاصيل
+                            </a>
+                            {% if not patient.has_file %}
+                                <form method="post" action="{% url 'create_patient_file' patient.id %}" class="patient-action-form">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-sm" data-confirm="هل تريد إنشاء ملف للمريض {{ patient.name }}؟">
+                                        إنشاء ملف
+                                    </button>
+                                </form>
+                            {% else %}
+                                <span style="display:inline-flex;align-items:center;gap:7px;padding:8px 14px;background:#F8F9FA;border-radius:10px;font-size:12.5px;font-weight:600;color:#8C9FB4;border:1px solid #EDEEEF;">
+                                    الملف مُنشأ
+                                </span>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7">
+                    <td colspan="8">
                         <div class="empty-state">
                             <div class="empty-state-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">

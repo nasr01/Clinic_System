@@ -1,0 +1,273 @@
+{% extends 'base_doctor.html' %}
+
+{% block title %}التقارير - نظام إدارة العيادة{% endblock %}
+
+{% block page_title %}التقارير{% endblock %}
+{% block page_subtitle %}عرض إحصائيات وتقارير الزيارات المكتملة{% endblock %}
+
+{% block content %}
+
+<div class="card" style="margin-bottom:24px;">
+    <div class="card-header">
+        <h2 class="card-title">
+            <span class="card-title-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+            </span>
+            فلترة التقارير
+        </h2>
+    </div>
+    <div class="card-body">
+        <form method="get" class="reports-filter-form">
+            <div class="filter-inputs">
+                <div>
+                    <label for="from_date" style="display:block;font-size:13px;font-weight:600;color:#8C9FB4;margin-bottom:8px;">من تاريخ</label>
+                    <input type="date" class="form-control" id="from_date" name="from_date" value="{{ from_date|date:'Y-m-d' }}" style="width:100%;padding:12px 16px;border:1px solid #E5E7EB;border-radius:10px;font-size:14px;color:#21354C;transition:all .2s ease;" onfocus="this.style.borderColor='#2E5787';this.style.boxShadow='0 0 0 3px rgba(46,87,135,0.08)'" onblur="this.style.borderColor='#E5E7EB';this.style.boxShadow='none'">
+                </div>
+                <div>
+                    <label for="to_date" style="display:block;font-size:13px;font-weight:600;color:#8C9FB4;margin-bottom:8px;">إلى تاريخ</label>
+                    <input type="date" class="form-control" id="to_date" name="to_date" value="{{ to_date|date:'Y-m-d' }}" style="width:100%;padding:12px 16px;border:1px solid #E5E7EB;border-radius:10px;font-size:14px;color:#21354C;transition:all .2s ease;" onfocus="this.style.borderColor='#2E5787';this.style.boxShadow='0 0 0 3px rgba(46,87,135,0.08)'" onblur="this.style.borderColor='#E5E7EB';this.style.boxShadow='none'">
+                </div>
+            </div>
+            <div class="filter-button">
+                <button type="submit" class="btn btn-primary" style="padding:12px 24px;white-space:nowrap;width:100%;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-left:6px;">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    عرض التقارير
+                </button>
+            </div>
+        </form>
+        <style>
+            .reports-filter-form {
+                display: grid;
+                grid-template-columns: 1fr auto;
+                gap: 16px;
+                align-items: end;
+            }
+            .filter-inputs {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+            }
+            @media (max-width: 768px) {
+                .reports-filter-form {
+                    grid-template-columns: 1fr;
+                    gap: 16px;
+                }
+                .filter-inputs {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+    </div>
+</div>
+
+<div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:24px;">
+    <style>
+        @media (max-width: 480px) {
+            .stat-change {
+                font-size: 11px !important;
+                gap: 4px;
+            }
+            .stat-change svg {
+                width: 12px !important;
+                height: 12px !important;
+            }
+        }
+    </style>
+    <div class="stat-card primary" style="padding:18px;">
+        <div class="stat-header">
+            <div class="stat-icon" style="width:42px;height:42px;font-size:20px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+            </div>
+            <span class="stat-badge">إجمالي</span>
+        </div>
+        <div class="stat-label" style="font-size:13px;">إجمالي الزيارات</div>
+        <div class="stat-value" style="font-size:28px;">{{ total_visits }}</div>
+        <div class="stat-change neutral">
+            <span>جميع الزيارات المكتملة</span>
+        </div>
+    </div>
+
+    <div class="stat-card success" style="padding:18px;">
+        <div class="stat-header">
+            <div class="stat-icon" style="width:42px;height:42px;font-size:20px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            </div>
+            <span class="stat-badge">كشف</span>
+        </div>
+        <div class="stat-label" style="font-size:13px;">إجمالي الكشوف</div>
+        <div class="stat-value" style="font-size:28px;">{{ total_examinations }}</div>
+        <div class="stat-change positive">
+            {% if total_visits > 0 %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                </svg>
+                {% widthratio total_examinations total_visits 100 %}% من الزيارات
+            {% else %}
+                لا توجد كشوف
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="stat-card info" style="padding:18px;">
+        <div class="stat-header">
+            <div class="stat-icon" style="width:42px;height:42px;font-size:20px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+            </div>
+            <span class="stat-badge">استشارة</span>
+        </div>
+        <div class="stat-label" style="font-size:13px;">إجمالي الاستشارات</div>
+        <div class="stat-value" style="font-size:28px;">{{ total_consultations }}</div>
+        <div class="stat-change positive">
+            {% if total_visits > 0 %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                </svg>
+                {% widthratio total_consultations total_visits 100 %}% من الزيارات
+            {% else %}
+                لا توجد استشارات
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">
+            <span class="card-title-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10 9 9 9 8 9"/>
+                </svg>
+            </span>
+            جدول الزيارات المكتملة
+        </h2>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <span style="font-size:13px;color:#8C9FB4;font-weight:500;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-left:3px;">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                </svg>
+                من {{ from_date|date:"j F Y" }} إلى {{ to_date|date:"j F Y" }}
+            </span>
+        </div>
+    </div>
+    <div class="table-wrapper">
+        {% if completed_visits %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>رقم الانتظار</th>
+                    <th>اسم المريض</th>
+                    <th>نوع الزيارة</th>
+                    <th>التاريخ</th>
+                    <th>وقت البداية</th>
+                    <th>وقت النهاية</th>
+                    <th>مدة الكشف</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for visit in completed_visits %}
+                <tr>
+                    <td>
+                        <span class="queue-number">#{{ visit.queue_number }}</span>
+                    </td>
+                    <td style="font-weight:600;color:#21354C;font-size:14.5px;">{{ visit.name }}</td>
+                    <td>
+                        {% if visit.visit_type == 'examination' %}
+                            <span class="status-badge" style="background:#DBFDF2;color:#2D7A5E;border:1px solid rgba(45, 122, 94, 0.16);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-left:4px;">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                    <polyline points="22 4 12 14.01 9 11.01"/>
+                                </svg>
+                                كشف
+                            </span>
+                        {% else %}
+                            <span class="status-badge" style="background:#D7E7F7;color:#2E5787;border:1px solid rgba(46, 87, 135, 0.16);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-left:4px;">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                استشارة
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>{{ visit.queue_date|date:"j F Y" }}</td>
+                    <td>
+                        {% if visit.examination_started_at %}
+                            <span style="display:inline-flex;align-items:center;gap:6px;color:#8C9FB4;font-size:13.5px;font-weight:600;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                                {{ visit.examination_started_at|date:"h:i A" }}
+                            </span>
+                        {% else %}
+                            <span style="color:#CBD5E1;">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if visit.completed_at %}
+                            <span style="display:inline-flex;align-items:center;gap:6px;color:#8C9FB4;font-size:13.5px;font-weight:600;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                                {{ visit.completed_at|date:"h:i A" }}
+                            </span>
+                        {% else %}
+                            <span style="color:#CBD5E1;">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if visit.examination_started_at and visit.completed_at %}
+                            <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#F8F9FA;border-radius:8px;color:#2E5787;font-size:13px;font-weight:700;border:1px solid #E5E7EB;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                                </svg>
+                                {% widthratio visit.completed_at.timestamp|add:"-"|add:visit.examination_started_at.timestamp 60 1 %} دقيقة
+                            </span>
+                        {% else %}
+                            <span style="color:#CBD5E1;">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+            </div>
+            <div class="empty-state-title">لا توجد زيارات مكتملة</div>
+            <div class="empty-state-desc">لم يتم العثور على زيارات مكتملة في الفترة المحددة. جرب تغيير نطاق التاريخ للحصول على نتائج.</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -8,6 +8,13 @@
 {% block content %}
 
 <div class="grid-row cols-2" style="grid-template-columns:1.2fr 1fr;">
+    <style>
+        @media (max-width: 1024px) {
+            .grid-row.cols-2 {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
     <div class="card">
         <div class="card-header">
             <h2 class="card-title">

@@ -5,9 +5,8 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from .models import Attendance, User
+from patients.models import Notification
 
-from tenants.manager import configure_tenant_database
-from tenants.models import Tenant
 from tenants.routers import (
     set_current_tenant_db,
     clear_current_tenant_db,
@@ -15,23 +14,36 @@ from tenants.routers import (
 
 
 def redirect_by_role(user):
-    if user.role == User.Role.DOCTOR:
+    user_role = getattr(user, 'role', None)
+
+    if user_role == User.Role.DOCTOR:
         return redirect("doctor_dashboard")
 
-    if user.role == User.Role.SECRETARY:
+    if user_role == User.Role.SECRETARY:
         return redirect("secretary_dashboard")
 
     return redirect("login")
 
 
+def create_notification_for_doctors(notification_type, title, message):
+    """
+    Helper function to create notifications for all doctors
+    """
+    doctors = User.objects.filter(role=User.Role.DOCTOR)
+    for doctor in doctors:
+        Notification.objects.create(
+            recipient=doctor,
+            notification_type=notification_type,
+            title=title,
+            message=message,
+        )
+
+
 def login_view(request):
 
-    if request.method == "POST":
+    tenant = request.tenant
 
-        clinic_slug = request.POST.get(
-            "clinic_slug",
-            "",
-        ).strip()
+    if request.method == "POST":
 
         username = request.POST.get(
             "username",
@@ -44,21 +56,8 @@ def login_view(request):
         )
 
         context = {
-            "clinic_slug": clinic_slug,
             "username": username,
         }
-
-        # =========================
-        # Validation
-        # =========================
-
-        if not clinic_slug:
-            context["error"] = "يرجى إدخال معرف العيادة."
-            return render(
-                request,
-                "accounts/login.html",
-                context,
-            )
 
         if not username or not password:
             context["error"] = (
@@ -71,38 +70,6 @@ def login_view(request):
                 context,
             )
 
-        # =========================
-        # Get Tenant
-        # =========================
-
-        try:
-            tenant = (
-                Tenant.objects
-                .using("default")
-                .get(
-                    slug=clinic_slug,
-                    status=Tenant.Status.ACTIVE,
-                )
-            )
-
-        except Tenant.DoesNotExist:
-
-            context["error"] = (
-                "العيادة غير موجودة أو موقوفة."
-            )
-
-            return render(
-                request,
-                "accounts/login.html",
-                context,
-            )
-
-        # =========================
-        # Configure Tenant DB
-        # =========================
-
-        configure_tenant_database(tenant)
-
         set_current_tenant_db("tenant")
 
         user = authenticate(
@@ -110,10 +77,6 @@ def login_view(request):
             username=username,
             password=password,
         )
-
-        # =========================
-        # Invalid Login
-        # =========================
 
         if user is None:
 
@@ -129,16 +92,8 @@ def login_view(request):
                 context,
             )
 
-        # =========================
-        # Save Tenant in Session
-        # =========================
-
         request.session["tenant_id"] = tenant.id
         request.session["tenant_slug"] = tenant.slug
-
-        # =========================
-        # Login (tenant context still active)
-        # =========================
 
         try:
 
@@ -155,13 +110,16 @@ def login_view(request):
     return render(
         request,
         "accounts/login.html",
+        {
+            "clinic_name": tenant.clinic_name if tenant else "",
+        },
     )
 
 
 @login_required
 def doctor_dashboard(request):
 
-    if request.user.role != User.Role.DOCTOR:
+    if getattr(request.user, 'role', None) != User.Role.DOCTOR:
         return redirect_by_role(request.user)
 
     from patients.models import Patient
@@ -207,7 +165,7 @@ def doctor_dashboard(request):
 @login_required
 def doctor_employees(request):
 
-    if request.user.role != User.Role.DOCTOR:
+    if getattr(request.user, 'role', None) != User.Role.DOCTOR:
         return redirect_by_role(request.user)
 
     employees = (
@@ -315,7 +273,7 @@ def doctor_employees(request):
 @login_required
 def secretary_dashboard(request):
 
-    if request.user.role != User.Role.SECRETARY:
+    if getattr(request.user, 'role', None) != User.Role.SECRETARY:
         return redirect_by_role(request.user)
 
     from patients.models import Patient
@@ -361,7 +319,7 @@ def secretary_dashboard(request):
 @login_required
 def secretary_attendance(request):
 
-    if request.user.role != User.Role.SECRETARY:
+    if getattr(request.user, 'role', None) != User.Role.SECRETARY:
         return redirect_by_role(request.user)
 
     today = timezone.localdate()
@@ -394,6 +352,13 @@ def secretary_attendance(request):
                     employee=request.user,
                     date=today,
                     check_in=now,
+                )
+
+                # Create notification for doctors
+                create_notification_for_doctors(
+                    notification_type=Notification.Type.ATTENDANCE,
+                    title=f"تسجيل حضور: {request.user.get_full_name|default:request.user.username}",
+                    message=f"قام {request.user.get_full_name|default:request.user.username} بتسجيل الحضور في {now.strftime('%H:%M')}",
                 )
 
                 messages.success(
@@ -434,6 +399,13 @@ def secretary_attendance(request):
                     update_fields=[
                         "check_out"
                     ]
+                )
+
+                # Create notification for doctors
+                create_notification_for_doctors(
+                    notification_type=Notification.Type.ATTENDANCE,
+                    title=f"تسجيل انصراف: {request.user.get_full_name|default:request.user.username}",
+                    message=f"قام {request.user.get_full_name|default:request.user.username} بتسجيل الانصراف في {now.strftime('%H:%M')} - مدة العمل: {attendance.work_duration}",
                 )
 
                 messages.success(

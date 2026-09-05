@@ -6,6 +6,7 @@
         initModals();
         initConfirmDialogs();
         initDoughnutCharts();
+        initNotifications();
     });
 
     function initMobileSidebar() {
@@ -187,5 +188,202 @@
     window.ClinicUI = {
         openModal: openModal,
         closeModal: closeModal
+    };
+
+    function initNotifications() {
+        var wrapper = document.querySelector('.header-notification-wrapper');
+        var bellBtn = document.getElementById('notificationBellBtn');
+        var dropdown = document.getElementById('notificationsDropdown');
+
+        if (!wrapper || !bellBtn || !dropdown) return;
+
+        bellBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!wrapper.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        updateNotificationCount();
+        setInterval(updateNotificationCount, 30000);
+    }
+
+    window.toggleNotifications = function() {
+        var dropdown = document.getElementById('notificationsDropdown');
+        if (dropdown) {
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+    };
+
+    // Global functions for notifications
+    window.getCookie = function(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    };
+
+    window.updateNotificationCount = function() {
+        fetch('/doctor/notifications/count/')
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                var dot = document.getElementById('notificationDot');
+                if (dot) {
+                    dot.style.display = data.count === 0 ? 'none' : 'block';
+                }
+
+                var badge = document.getElementById('notificationBadge');
+                if (data.count > 0) {
+                    if (badge) {
+                        badge.textContent = data.count;
+                        badge.style.display = 'flex';
+                    } else {
+                        var bellBtn = document.getElementById('notificationBellBtn');
+                        if (bellBtn) {
+                            var newBadge = document.createElement('span');
+                            newBadge.id = 'notificationBadge';
+                            newBadge.className = 'notification-badge';
+                            newBadge.textContent = data.count;
+                            bellBtn.appendChild(newBadge);
+                        }
+                    }
+                } else {
+                    if (badge) {
+                        badge.remove();
+                    }
+                }
+
+                var sidebarCount = document.querySelector('.nav-link .notification-count');
+                if (sidebarCount) {
+                    if (data.count === 0) {
+                        sidebarCount.style.display = 'none';
+                    } else {
+                        sidebarCount.textContent = data.count;
+                        sidebarCount.style.display = 'inline-block';
+                    }
+                }
+
+                var markAllBtn = document.getElementById('markAllReadBtn');
+                if (markAllBtn && data.count === 0) {
+                    markAllBtn.outerHTML = '<span class="notif-action-link notif-action-disabled">قراءة الكل</span>';
+                } else if (!markAllBtn && data.count > 0) {
+                    var header = document.querySelector('.notif-dropdown-header');
+                    if (header) {
+                        var existingDisabled = header.querySelector('.notif-action-disabled');
+                        if (existingDisabled) {
+                            var newBtn = document.createElement('button');
+                            newBtn.type = 'button';
+                            newBtn.id = 'markAllReadBtn';
+                            newBtn.className = 'notif-action-link';
+                            newBtn.textContent = 'قراءة الكل';
+                            newBtn.onclick = function() { markAllNotificationsRead(); };
+                            existingDisabled.outerHTML = newBtn.outerHTML;
+                        }
+                    }
+                }
+            })
+            .catch(function(error) {
+                console.warn('Failed to update notification count:', error);
+            });
+    };
+
+    window.handleNotificationClick = function(notificationId, patientUrl) {
+        fetch('/doctor/notifications/' + notificationId + '/read/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.success) {
+                updateNotificationCount();
+                var notifItems = document.querySelectorAll('.notif-item');
+                notifItems.forEach(function(item) {
+                    if (item.getAttribute('onclick') && item.getAttribute('onclick').indexOf(notificationId) !== -1) {
+                        item.classList.remove('notif-item-unread');
+                        var dot = item.querySelector('.notif-item-dot');
+                        if (dot) dot.remove();
+                    }
+                });
+                if (patientUrl) {
+                    setTimeout(function() {
+                        window.location.href = patientUrl;
+                    }, 200);
+                }
+            }
+        })
+        .catch(function(error) {
+            console.warn('Failed to mark notification read:', error);
+            if (patientUrl) {
+                window.location.href = patientUrl;
+            }
+        });
+    };
+
+    window.markAllNotificationsRead = function() {
+        fetch('/doctor/notifications/read-all/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.success) {
+                updateNotificationCount();
+                document.querySelectorAll('.notif-item-unread').forEach(function(el) {
+                    el.classList.remove('notif-item-unread');
+                });
+                document.querySelectorAll('.notif-item-dot').forEach(function(el) {
+                    el.remove();
+                });
+                var markAllBtn = document.getElementById('markAllReadBtn');
+                if (markAllBtn) {
+                    markAllBtn.outerHTML = '<span class="notif-action-link notif-action-disabled">قراءة الكل</span>';
+                }
+            }
+        })
+        .catch(function(error) {
+            console.warn('Failed to mark all notifications read:', error);
+        });
+    };
+
+    window.refreshNotifications = function() {
+        var dropdown = document.getElementById('notificationsDropdown');
+        if (dropdown) {
+            var body = dropdown.querySelector('.notif-dropdown-body');
+            if (body) {
+                var oldHTML = body.innerHTML;
+                body.style.opacity = '0.5';
+                setTimeout(function() {
+                    body.style.opacity = '1';
+                }, 300);
+            }
+        }
+        updateNotificationCount();
+        setTimeout(function() {
+            location.reload();
+        }, 300);
     };
 })();

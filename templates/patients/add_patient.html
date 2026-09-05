@@ -7,7 +7,14 @@
 
 {% block content %}
 
-<div class="grid-row cols-2" style="grid-template-columns:1fr 1.3fr;">
+<div class="grid-row" style="grid-template-columns:1fr 1.3fr;">
+    <style>
+        @media (max-width: 1024px) {
+            .grid-row {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
     <div class="card">
         <div class="card-header">
             <h2 class="card-title">
@@ -25,6 +32,22 @@
         <div class="card-body">
             <form method="post" novalidate>
                 {% csrf_token %}
+
+                {% if form.errors %}
+                <div class="alert alert-error" style="margin-bottom:20px;">
+                    <span class="alert-icon">✕</span>
+                    <div>
+                        <strong>يوجد أخطاء في النموذج:</strong>
+                        <ul style="margin:8px 0 0 20px;padding:0;">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ field }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
 
                 {% if form.non_field_errors %}
                 <div class="alert alert-error">
@@ -53,6 +76,28 @@
                             <span class="form-error">{{ error }}</span>
                         {% endfor %}
                     {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_visit_type">
+                        نوع الزيارة
+                        <span class="required">*</span>
+                    </label>
+                    <select
+                        id="id_visit_type"
+                        name="visit_type"
+                        class="form-input {% if form.visit_type.errors %}error{% endif %}"
+                        required
+                    >
+                        <option value="examination" {% if form.visit_type.value == 'examination' or not form.visit_type.value %}selected{% endif %}>كشف</option>
+                        <option value="consultation" {% if form.visit_type.value == 'consultation' %}selected{% endif %}>استشارة</option>
+                    </select>
+                    {% if form.visit_type.errors %}
+                        {% for error in form.visit_type.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                    <span class="form-help">اختر نوع الزيارة المطلوبة</span>
                 </div>
 
                 <div class="form-row">
@@ -105,7 +150,42 @@
                     </div>
                 </div>
 
-                <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;">
+                <div class="form-group">
+                    <label class="form-label" for="id_complaint">
+                        المرض / الشكوى الرئيسية
+                    </label>
+                    <textarea
+                        id="id_complaint"
+                        name="complaint"
+                        class="form-input {% if form.complaint.errors %}error{% endif %}"
+                        placeholder="وصف المرض أو الشكوى الرئيسية للمريض..."
+                        rows="4"
+                    >{{ form.complaint.value|default:'' }}</textarea>
+                    {% if form.complaint.errors %}
+                        {% for error in form.complaint.errors %}
+                            <span class="form-error">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                    <span class="form-help">اختياري - وصف الحالة الصحية أو سبب الزيارة</span>
+                </div>
+
+                <div class="form-buttons-wrapper">
+                    <style>
+                        .form-buttons-wrapper {
+                            display: flex;
+                            gap: 12px;
+                            flex-wrap: wrap;
+                            margin-top: 10px;
+                        }
+                        @media (max-width: 480px) {
+                            .form-buttons-wrapper {
+                                flex-direction: column;
+                            }
+                            .form-buttons-wrapper .btn {
+                                width: 100%;
+                            }
+                        }
+                    </style>
                     <button type="submit" class="btn btn-primary btn-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -139,21 +219,43 @@
             </h2>
         </div>
         <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
-            <div style="padding:20px;border-radius:14px;background:#D7E7F7;border:1px solid rgba(46, 87, 135, 0.12);">
+            <style>
+                @media (max-width: 480px) {
+                    .queue-info-card {
+                        padding: 16px !important;
+                    }
+                    .queue-info-card .queue-display {
+                        width: 54px !important;
+                        height: 54px !important;
+                        font-size: 24px !important;
+                    }
+                    .queue-info-card .queue-text {
+                        font-size: 17px !important;
+                    }
+                }
+            </style>
+            <div style="padding:20px;border-radius:14px;background:#D7E7F7;border:1px solid rgba(46, 87, 135, 0.12);" class="queue-info-card">
                 <div style="display:flex;align-items:center;gap:16px;">
-                    <div style="width:62px;height:62px;border-radius:14px;background:#2E5787;color:white;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;box-shadow:0 6px 14px rgba(46, 87, 135, 0.25);flex-shrink:0;">
+                    <div style="width:62px;height:62px;border-radius:14px;background:#2E5787;color:white;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;box-shadow:0 6px 14px rgba(46, 87, 135, 0.25);flex-shrink:0;" class="queue-display">
                         {% if next_queue_number %}#{{ next_queue_number }}{% else %}#1{% endif %}
                     </div>
                     <div>
                         <div style="font-size:13px;color:#2E5787;font-weight:600;margin-bottom:4px;">رقم الانتظار</div>
-                        <div style="font-size:20px;font-weight:800;color:#21354C;">
+                        <div style="font-size:20px;font-weight:800;color:#21354C;" class="queue-text">
                             {% if next_queue_number %}المريض القادم رقم {{ next_queue_number }}{% else %}سيكون الأول{% endif %}
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="info-cards-grid">
+                <style>
+                    @media (max-width: 480px) {
+                        .info-cards-grid {
+                            grid-template-columns: 1fr !important;
+                        }
+                    }
+                </style>
                 <div style="padding:18px;border-radius:12px;background:#F8F9FA;border:1px solid #EDEEEF;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
                         <div style="width:36px;height:36px;border-radius:10px;background:#D7E7F7;color:#2E5787;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">
@@ -187,7 +289,22 @@
                 </div>
             </div>
 
-            <div style="padding:18px;border-radius:12px;background:#FCFCDC;border:1px solid rgba(201, 168, 76, 0.20);">
+            <div style="padding:18px;border-radius:12px;background:#FCFCDC;border:1px solid rgba(201, 168, 76, 0.20);" class="info-notice-box">
+                <style>
+                    @media (max-width: 480px) {
+                        .info-notice-box {
+                            padding: 14px !important;
+                        }
+                        .info-notice-box > div {
+                            flex-direction: column !important;
+                            gap: 10px !important;
+                        }
+                        .info-notice-box strong {
+                            display: block;
+                            margin: 4px 0;
+                        }
+                    }
+                </style>
                 <div style="display:flex;align-items:flex-start;gap:12px;">
                     <div style="font-size:22px;flex-shrink:0;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8B7A1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -209,7 +326,21 @@
                 </div>
             </div>
 
-            <div style="padding:18px;border-radius:12px;background:#DBFDF2;border:1px solid rgba(45, 122, 94, 0.18);">
+            <div style="padding:18px;border-radius:12px;background:#DBFDF2;border:1px solid rgba(45, 122, 94, 0.18);" class="stats-info-box">
+                <style>
+                    @media (max-width: 480px) {
+                        .stats-info-box {
+                            padding: 14px !important;
+                        }
+                        .stats-info-box > div {
+                            flex-direction: column !important;
+                            gap: 10px !important;
+                        }
+                        .stats-info-box .stat-row {
+                            gap: 12px !important;
+                        }
+                    }
+                </style>
                 <div style="display:flex;align-items:flex-start;gap:12px;">
                     <div style="font-size:22px;flex-shrink:0;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2D7A5E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -219,7 +350,7 @@
                     </div>
                     <div>
                         <div style="font-size:14px;font-weight:700;color:#2D7A5E;margin-bottom:6px;">إحصاءات اليوم</div>
-                        <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:6px;">
+                        <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:6px;" class="stat-row">
                             <div>
                                 <span style="font-size:12.5px;color:#2D7A5E;font-weight:600;">عدد المرضى:</span>
                                 <strong style="font-size:16px;color:#21354C;margin-right:4px;">{{ today_patients_count|default:0 }}</strong>

@@ -7,7 +7,14 @@
 
 {% block content %}
 
-<div class="grid-row cols-2" style="grid-template-columns:1.4fr 1fr;">
+<div class="grid-row cols-2 employees-grid">
+    <style>
+        @media (max-width: 1024px) {
+            .employees-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
     <div class="card">
         <div class="card-header">
             <h2 class="card-title">
@@ -203,6 +210,24 @@
             {% with emp.attendances.all|slice:":15" as attendances %}
             {% if attendances %}
             <div class="attendance-history-list">
+                <style>
+                    @media (max-width: 640px) {
+                        .attendance-history-item {
+                            grid-template-columns: 1fr !important;
+                            gap: 10px;
+                        }
+                        .attendance-history-date {
+                            font-size: 13px;
+                        }
+                        .attendance-history-time {
+                            font-size: 12px;
+                        }
+                        .attendance-history-duration {
+                            font-size: 12px;
+                            padding: 5px 10px;
+                        }
+                    }
+                </style>
                 {% for att in attendances %}
                 <div class="attendance-history-item">
                     <div class="attendance-history-date">

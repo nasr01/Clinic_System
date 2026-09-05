@@ -1,0 +1,182 @@
+{% extends 'base_doctor.html' %}
+
+{% block title %}الإشعارات - نظام إدارة العيادة{% endblock %}
+
+{% block page_title %}الإشعارات{% endblock %}
+{% block page_subtitle %}جميع الإشعارات والتنبيهات{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">
+            <span class="card-title-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+            </span>
+            جميع الإشعارات
+            {% if unread_count > 0 %}
+            <span style="background:#EF4444;color:white;padding:2px 8px;border-radius:12px;font-size:12px;margin-right:auto;">{{ unread_count }} غير مقروء</span>
+            {% endif %}
+        </h2>
+        <div class="card-actions">
+            {% if unread_count > 0 %}
+            <button onclick="markAllAsRead()" class="btn-secondary" style="padding:8px 16px;background:#64748B;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;">
+                تعيين الكل كمقروء
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        {% if notifications %}
+        <div class="notifications-list">
+            {% for notification in notifications %}
+            <div class="notification-item {% if not notification.is_read %}unread{% endif %}" 
+                 style="padding:16px;border-bottom:1px solid #e2e8f0;cursor:pointer;transition:background-color 0.2s;{% if not notification.is_read %}background:#f0f9ff;{% endif %}"
+                 onclick="markAsRead({{ notification.id }})">
+                
+                <div style="display:flex;align-items:flex-start;gap:16px;">
+                    <div class="notification-icon" style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+                        {% if notification.notification_type == 'new_patient' %}background:#D1FAE5;color:#059669;
+                        {% elif notification.notification_type == 'patient_started' %}background:#DBEAFE;color:#2563EB;
+                        {% elif notification.notification_type == 'patient_completed' %}background:#FEF3C7;color:#D97706;
+                        {% else %}background:#E2E8F0;color:#64748B;{% endif %}">
+                        {% if notification.notification_type == 'new_patient' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <line x1="20" y1="8" x2="20" y2="14"/>
+                            <line x1="23" y1="11" x2="17" y2="11"/>
+                        </svg>
+                        {% elif notification.notification_type == 'patient_started' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        {% elif notification.notification_type == 'patient_completed' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                        {% else %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        {% endif %}
+                    </div>
+                    
+                    <div style="flex:1;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+                            <h3 style="margin:0;font-size:15px;font-weight:600;color:#1e293b;">{{ notification.title }}</h3>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                {% if not notification.is_read %}
+                                <span style="width:8px;height:8px;background:#EF4444;border-radius:50%;"></span>
+                                {% endif %}
+                                <span style="font-size:12px;color:#64748B;">{{ notification.created_at|date:"Y-m-d H:i" }}</span>
+                            </div>
+                        </div>
+                        <p style="margin:4px 0 0 0;font-size:14px;color:#475569;line-height:1.6;">{{ notification.message }}</p>
+                        {% if notification.patient %}
+                        <div style="margin-top:8px;font-size:13px;color:#64748B;">
+                            <strong>المريض:</strong> {{ notification.patient.name }} (رقم الملف #{{ notification.patient.id }})
+                            <input type="hidden" id="patient-{{ notification.id }}" value="{% if notification.patient %}{% url 'doctor_patient_detail' notification.patient.id %}{% endif %}">
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state" style="padding:60px 20px;text-align:center;">
+            <div class="empty-state-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+            </div>
+            <div class="empty-state-title">لا توجد إشعارات</div>
+            <div class="empty-state-desc">لم يتم إرسال أي إشعارات إليك حتى الآن.</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function markAsRead(notificationId) {
+    fetch(`/doctor/notifications/${notificationId}/read/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateNotificationCount();
+            // Navigate to patient detail if available
+            const patientUrl = document.getElementById(`patient-${notificationId}`);
+            if (patientUrl && patientUrl.value) {
+                window.location.href = patientUrl.value;
+            }
+        }
+    });
+}
+
+function markAllAsRead() {
+    if (!confirm('هل تريد تعيين جميع الإشعارات كمقروءة؟')) {
+        return;
+    }
+    
+    fetch('/doctor/notifications/read-all/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function updateNotificationCount() {
+    fetch('/doctor/notifications/count/')
+        .then(response => response.json())
+        .then(data => {
+            const dot = document.querySelector('.notification-dot');
+            if (data.count === 0) {
+                dot.style.display = 'none';
+            } else {
+                dot.style.display = 'block';
+            }
+        });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+{% endblock %}

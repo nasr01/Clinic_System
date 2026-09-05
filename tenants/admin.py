@@ -9,6 +9,7 @@ from django.db.utils import IntegrityError
 from .models import Tenant
 from .database import (
     create_tenant_database,
+    drop_tenant_database,
     validate_database_name,
 )
 from .manager import (
@@ -238,6 +239,60 @@ class TenantAdmin(admin.ModelAdmin):
             return TenantCreateForm
         return super().get_form(request, obj, **kwargs)
 
+    def get_readonly_fields(self, request, obj=None):
+        readonly = list(super().get_readonly_fields(request, obj))
+        
+        # After creation, database connection fields become immutable
+        # to prevent pointing to non-existent databases
+        if obj is not None:
+            readonly.extend([
+                'database_name',
+                'database_host',
+                'database_port',
+                'database_user',
+            ])
+        
+        return tuple(readonly)
+
+    def delete_model(self, request, obj):
+        """
+        Override delete to prevent accidental PostgreSQL database destruction.
+        
+        Only the Tenant record is deleted from the control database.
+        The actual PostgreSQL database is NOT dropped to prevent data loss.
+        
+        Admin must manually drop the database if permanent deletion is intended.
+        """
+        database_name = obj.database_name
+        
+        # Delete only the Tenant record
+        super().delete_model(request, obj)
+        
+        messages.warning(
+            request,
+            f"تم حذف سجل العيادة \"{obj.clinic_name}\" من النظام.\n"
+            f"ملاحظة مهمة: قاعدة البيانات \"{database_name}\" لم يتم حذفها.\n"
+            f"إذا كنت تريد حذفها نهائياً، يجب حذفها يدوياً من PostgreSQL."
+        )
+
+    def delete_queryset(self, request, queryset):
+        """
+        Override bulk delete to prevent accidental PostgreSQL database destruction.
+        """
+        database_names = list(queryset.values_list('database_name', flat=True))
+        count = queryset.count()
+        
+        # Delete only the Tenant records
+        super().delete_queryset(request, queryset)
+        
+        messages.warning(
+            request,
+            f"تم حذف {count} سجل عيادة من النظام.\n"
+            f"ملاحظة مهمة: قواعد البيانات التالية لم يتم حذفها:\n"
+            f"{', '.join(database_names)}\n"
+            f"إذا كنت تريد حذفها نهائياً، يجب حذفها يدوياً من PostgreSQL."
+        )
+
     def save_model(self, request, obj, form, change):
         if change:
             super().save_model(request, obj, form, change)
@@ -247,18 +302,23 @@ class TenantAdmin(admin.ModelAdmin):
         doctor_full_name = form.cleaned_data.get("doctor_full_name")
         doctor_password = form.cleaned_data.get("doctor_password")
 
-        created = False
+        tenant_created = False
+        database_created = False
+        
         try:
+            # Step 1: Save Tenant record
             super().save_model(request, obj, form, change)
-            created = True
+            tenant_created = True
 
+            # Step 2: Create PostgreSQL database
             try:
-                create_tenant_database(obj.database_name)
+                database_created = create_tenant_database(obj.database_name)
             except Exception as exc:
                 raise RuntimeError(
                     f"فشل إنشاء قاعدة البيانات: {exc}"
                 )
 
+            # Step 3: Configure tenant database connection
             try:
                 configure_tenant_database(obj)
                 connections["tenant"].ensure_connection()
@@ -267,6 +327,7 @@ class TenantAdmin(admin.ModelAdmin):
                     f"فشل الاتصال بقاعدة البيانات: {exc}"
                 )
 
+            # Step 4: Run migrations
             try:
                 migrate_tenant_database(obj)
             except Exception as exc:
@@ -274,6 +335,7 @@ class TenantAdmin(admin.ModelAdmin):
                     f"فشل تشغيل migrations: {exc}"
                 )
 
+            # Step 5: Create first doctor
             if doctor_username and doctor_full_name and doctor_password:
                 set_current_tenant_db("tenant")
                 try:
@@ -295,15 +357,32 @@ class TenantAdmin(admin.ModelAdmin):
             )
 
         except Exception as exc:
-            if created:
-                try:
-                    Tenant.objects.using("default").filter(id=obj.id).delete()
-                except Exception:
-                    pass
+            # Cleanup on failure
+            
+            # Close any open tenant connections
             try:
                 connections["tenant"].close()
             except Exception:
                 pass
+            
+            # Drop the database ONLY if we created it in this operation
+            if database_created:
+                try:
+                    drop_tenant_database(obj.database_name)
+                except Exception as drop_exc:
+                    # Log but don't fail - admin needs to manually clean up
+                    messages.warning(
+                        request,
+                        f"تحذير: فشل حذف قاعدة البيانات {obj.database_name} تلقائياً. "
+                        f"قد تحتاج إلى حذفها يدوياً. خطأ: {drop_exc}"
+                    )
+            
+            # Remove Tenant record if it was created
+            if tenant_created:
+                try:
+                    Tenant.objects.using("default").filter(id=obj.id).delete()
+                except Exception:
+                    pass
 
             messages.error(
                 request,
@@ -312,6 +391,7 @@ class TenantAdmin(admin.ModelAdmin):
             raise IntegrityError(str(exc)) from exc
 
         finally:
+            # Always close tenant connection
             try:
                 connections["tenant"].close()
             except Exception:
