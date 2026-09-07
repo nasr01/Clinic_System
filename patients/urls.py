@@ -2,8 +2,10 @@ from django.urls import path
 
 from .views import (
     add_patient,
+    clear_read_notifications,
     complete_examination,
     create_patient_file,
+    delete_notification,
     doctor_notifications,
     doctor_patient_add_attachment,
     doctor_patient_add_note,
@@ -110,5 +112,17 @@ urlpatterns = [
         "doctor/notifications/count/",
         notification_count,
         name="notification_count",
+    ),
+
+    path(
+        "doctor/notifications/<int:notification_id>/delete/",
+        delete_notification,
+        name="delete_notification",
+    ),
+
+    path(
+        "doctor/notifications/clear-read/",
+        clear_read_notifications,
+        name="clear_read_notifications",
     ),
 ]

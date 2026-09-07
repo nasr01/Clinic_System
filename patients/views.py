@@ -541,3 +541,30 @@ def notification_count(request):
 
     count = Notification.objects.filter(recipient=request.user, is_read=False).count()
     return JsonResponse({"count": count})
+
+
+@login_required
+def delete_notification(request, notification_id):
+    if getattr(request.user, 'role', None) != "doctor":
+        return JsonResponse({"success": False, "error": "Unauthorized"}, status=403)
+
+    try:
+        notification = Notification.objects.get(id=notification_id, recipient=request.user)
+        if not notification.is_read:
+            return JsonResponse({"success": False, "error": "Cannot delete unread notification"}, status=400)
+        notification.delete()
+        return JsonResponse({"success": True})
+    except Notification.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Notification not found"}, status=404)
+
+
+@login_required
+def clear_read_notifications(request):
+    if getattr(request.user, 'role', None) != "doctor":
+        return JsonResponse({"success": False, "error": "Unauthorized"}, status=403)
+
+    deleted_count, _ = Notification.objects.filter(
+        recipient=request.user,
+        is_read=True
+    ).delete()
+    return JsonResponse({"success": True, "deleted_count": deleted_count})

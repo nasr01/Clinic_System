@@ -199,7 +199,11 @@
 
         bellBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+            var isHidden = dropdown.style.display === 'none' || dropdown.style.display === '';
+            dropdown.style.display = isHidden ? 'block' : 'none';
+            if (isHidden) {
+                markDropdownNotificationsAsRead();
+            }
         });
 
         document.addEventListener('click', function(e) {
@@ -212,20 +216,59 @@
         setInterval(updateNotificationCount, 30000);
     }
 
+    function markDropdownNotificationsAsRead() {
+        var unreadItems = document.querySelectorAll('#notificationsDropdown .notif-item-unread');
+        if (unreadItems.length === 0) return;
+
+        fetch('/doctor/notifications/read-all/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                unreadItems.forEach(function(item) {
+                    item.classList.remove('notif-item-unread');
+                    var dot = item.querySelector('.notif-item-dot');
+                    if (dot) dot.remove();
+                    showNotificationDeleteBtn(item);
+                });
+                updateNotificationCount();
+                refreshClearReadBtn();
+            }
+        })
+        .catch(function(err) {
+            console.warn('Mark dropdown read failed:', err);
+        });
+    }
+
+    function showNotificationDeleteBtn(item) {
+        var btn = item.querySelector('.notif-delete-btn');
+        if (btn) {
+            btn.style.display = 'flex';
+        }
+    }
+
     window.toggleNotifications = function() {
         var dropdown = document.getElementById('notificationsDropdown');
         if (dropdown) {
-            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+            var isHidden = dropdown.style.display === 'none' || dropdown.style.display === '';
+            dropdown.style.display = isHidden ? 'block' : 'none';
+            if (isHidden) {
+                markDropdownNotificationsAsRead();
+            }
         }
     };
 
-    // Global functions for notifications
     window.getCookie = function(name) {
-        let cookieValue = null;
+        var cookieValue = null;
         if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
                 if (cookie.substring(0, name.length + 1) === (name + '=')) {
                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                     break;
@@ -237,29 +280,25 @@
 
     window.updateNotificationCount = function() {
         fetch('/doctor/notifications/count/')
-            .then(function(response) {
-                return response.json();
-            })
+            .then(function(response) { return response.json(); })
             .then(function(data) {
                 var dot = document.getElementById('notificationDot');
                 if (dot) {
                     dot.style.display = data.count === 0 ? 'none' : 'block';
                 }
 
+                var bellBtn = document.getElementById('notificationBellBtn');
                 var badge = document.getElementById('notificationBadge');
                 if (data.count > 0) {
                     if (badge) {
-                        badge.textContent = data.count;
+                        badge.textContent = data.count > 99 ? '99+' : data.count;
                         badge.style.display = 'flex';
-                    } else {
-                        var bellBtn = document.getElementById('notificationBellBtn');
-                        if (bellBtn) {
-                            var newBadge = document.createElement('span');
-                            newBadge.id = 'notificationBadge';
-                            newBadge.className = 'notification-badge';
-                            newBadge.textContent = data.count;
-                            bellBtn.appendChild(newBadge);
-                        }
+                    } else if (bellBtn) {
+                        var newBadge = document.createElement('span');
+                        newBadge.id = 'notificationBadge';
+                        newBadge.className = 'notification-badge';
+                        newBadge.textContent = data.count > 99 ? '99+' : data.count;
+                        bellBtn.appendChild(newBadge);
                     }
                 } else {
                     if (badge) {
@@ -272,34 +311,65 @@
                     if (data.count === 0) {
                         sidebarCount.style.display = 'none';
                     } else {
-                        sidebarCount.textContent = data.count;
+                        sidebarCount.textContent = data.count > 99 ? '99+' : data.count;
                         sidebarCount.style.display = 'inline-block';
                     }
                 }
 
-                var markAllBtn = document.getElementById('markAllReadBtn');
-                if (markAllBtn && data.count === 0) {
-                    markAllBtn.outerHTML = '<span class="notif-action-link notif-action-disabled">قراءة الكل</span>';
-                } else if (!markAllBtn && data.count > 0) {
-                    var header = document.querySelector('.notif-dropdown-header');
-                    if (header) {
-                        var existingDisabled = header.querySelector('.notif-action-disabled');
-                        if (existingDisabled) {
-                            var newBtn = document.createElement('button');
-                            newBtn.type = 'button';
-                            newBtn.id = 'markAllReadBtn';
-                            newBtn.className = 'notif-action-link';
-                            newBtn.textContent = 'قراءة الكل';
-                            newBtn.onclick = function() { markAllNotificationsRead(); };
-                            existingDisabled.outerHTML = newBtn.outerHTML;
-                        }
-                    }
-                }
+                refreshMarkAllBtn(data.count);
+                refreshClearReadBtn();
             })
             .catch(function(error) {
                 console.warn('Failed to update notification count:', error);
             });
     };
+
+    function refreshMarkAllBtn(count) {
+        var markAllBtn = document.getElementById('markAllReadBtn');
+        var header = document.querySelector('.notif-dropdown-header');
+        if (!header) return;
+
+        if (count === 0) {
+            if (markAllBtn) {
+                markAllBtn.outerHTML = '<span class="notif-action-link notif-action-disabled" id="markAllReadPlaceholder">قراءة الكل</span>';
+            }
+        } else {
+            var placeholder = document.getElementById('markAllReadPlaceholder');
+            if (placeholder) {
+                var newBtn = document.createElement('button');
+                newBtn.type = 'button';
+                newBtn.id = 'markAllReadBtn';
+                newBtn.className = 'notif-action-link';
+                newBtn.textContent = 'قراءة الكل';
+                newBtn.onclick = function() { markAllNotificationsRead(); };
+                placeholder.outerHTML = newBtn.outerHTML;
+                var rebind = document.getElementById('markAllReadBtn');
+                if (rebind) rebind.onclick = function() { markAllNotificationsRead(); };
+            }
+        }
+    }
+
+    function refreshClearReadBtn() {
+        var footer = document.querySelector('.notif-dropdown-footer');
+        if (!footer) return;
+        var readItems = document.querySelectorAll('#notificationsDropdown .notif-item:not(.notif-item-unread)');
+        var hasRead = readItems.length > 0;
+        var clearBtn = document.getElementById('clearReadBtn');
+
+        if (hasRead) {
+            if (!clearBtn) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.id = 'clearReadBtn';
+                btn.className = 'notif-action-link';
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg> مسح المقروءة';
+                btn.onclick = function() { clearReadNotifications(); };
+                footer.insertBefore(btn, footer.firstChild);
+            }
+        } else {
+            if (clearBtn) clearBtn.remove();
+        }
+    }
 
     window.handleNotificationClick = function(notificationId, patientUrl) {
         fetch('/doctor/notifications/' + notificationId + '/read/', {
@@ -309,20 +379,21 @@
                 'Content-Type': 'application/json',
             },
         })
-        .then(function(response) {
-            return response.json();
-        })
+        .then(function(response) { return response.json(); })
         .then(function(data) {
             if (data.success) {
                 updateNotificationCount();
                 var notifItems = document.querySelectorAll('.notif-item');
                 notifItems.forEach(function(item) {
-                    if (item.getAttribute('onclick') && item.getAttribute('onclick').indexOf(notificationId) !== -1) {
+                    var attr = item.getAttribute('data-notification-id');
+                    if (attr && String(attr) === String(notificationId)) {
                         item.classList.remove('notif-item-unread');
                         var dot = item.querySelector('.notif-item-dot');
                         if (dot) dot.remove();
+                        showNotificationDeleteBtn(item);
                     }
                 });
+                refreshClearReadBtn();
                 if (patientUrl) {
                     setTimeout(function() {
                         window.location.href = patientUrl;
@@ -338,6 +409,90 @@
         });
     };
 
+    window.deleteSingleNotification = function(notificationId, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        if (!confirm('هل تريد حذف هذا الإشعار؟')) return;
+
+        fetch('/doctor/notifications/' + notificationId + '/delete/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                var items = document.querySelectorAll('[data-notification-id="' + notificationId + '"]');
+                items.forEach(function(item) {
+                    item.style.transition = 'all 0.2s ease';
+                    item.style.opacity = '0';
+                    item.style.transform = 'translateX(20px)';
+                    setTimeout(function() {
+                        item.remove();
+                        checkNotificationsEmpty();
+                        refreshClearReadBtn();
+                    }, 200);
+                });
+                updateNotificationCount();
+            } else {
+                alert(data.error || 'تعذر حذف الإشعار');
+            }
+        })
+        .catch(function(err) {
+            console.warn('Delete notification failed:', err);
+        });
+    };
+
+    window.clearReadNotifications = function() {
+        if (!confirm('هل تريد حذف جميع الإشعارات المقروءة؟')) return;
+
+        fetch('/doctor/notifications/clear-read/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                var readItems = document.querySelectorAll('#notificationsDropdown .notif-item:not(.notif-item-unread)');
+                readItems.forEach(function(item) {
+                    item.style.transition = 'all 0.2s ease';
+                    item.style.opacity = '0';
+                    setTimeout(function() { item.remove(); }, 200);
+                });
+                setTimeout(function() {
+                    checkNotificationsEmpty();
+                    refreshClearReadBtn();
+                }, 250);
+                updateNotificationCount();
+            }
+        })
+        .catch(function(err) {
+            console.warn('Clear read notifications failed:', err);
+        });
+    };
+
+    function checkNotificationsEmpty() {
+        var body = document.querySelector('#notificationsDropdown .notif-dropdown-body');
+        if (!body) return;
+        var items = body.querySelectorAll('.notif-item');
+        if (items.length === 0) {
+            body.innerHTML = '<div class="notif-empty">' +
+                '<div class="notif-empty-icon">' +
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>' +
+                '</div>' +
+                '<span>لا توجد إشعارات جديدة</span>' +
+                '<small>سيتم عرض الإشعارات هنا عند وصولها</small>' +
+                '</div>';
+        }
+    }
+
     window.markAllNotificationsRead = function() {
         fetch('/doctor/notifications/read-all/', {
             method: 'POST',
@@ -346,22 +501,18 @@
                 'Content-Type': 'application/json',
             },
         })
-        .then(function(response) {
-            return response.json();
-        })
+        .then(function(response) { return response.json(); })
         .then(function(data) {
             if (data.success) {
                 updateNotificationCount();
                 document.querySelectorAll('.notif-item-unread').forEach(function(el) {
                     el.classList.remove('notif-item-unread');
+                    showNotificationDeleteBtn(el);
                 });
                 document.querySelectorAll('.notif-item-dot').forEach(function(el) {
                     el.remove();
                 });
-                var markAllBtn = document.getElementById('markAllReadBtn');
-                if (markAllBtn) {
-                    markAllBtn.outerHTML = '<span class="notif-action-link notif-action-disabled">قراءة الكل</span>';
-                }
+                refreshClearReadBtn();
             }
         })
         .catch(function(error) {
@@ -370,17 +521,6 @@
     };
 
     window.refreshNotifications = function() {
-        var dropdown = document.getElementById('notificationsDropdown');
-        if (dropdown) {
-            var body = dropdown.querySelector('.notif-dropdown-body');
-            if (body) {
-                var oldHTML = body.innerHTML;
-                body.style.opacity = '0.5';
-                setTimeout(function() {
-                    body.style.opacity = '1';
-                }, 300);
-            }
-        }
         updateNotificationCount();
         setTimeout(function() {
             location.reload();
