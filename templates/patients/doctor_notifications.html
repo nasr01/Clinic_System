@@ -1,13 +1,15 @@
 {% extends 'base_doctor.html' %}
+{% load static %}
 
 {% block title %}الإشعارات - نظام إدارة العيادة{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/doctor-notifications.css' %}">{% endblock %}
 
 {% block page_title %}الإشعارات{% endblock %}
 {% block page_subtitle %}جميع الإشعارات والتنبيهات{% endblock %}
 
 {% block content %}
 
-<div class="card">
+<div class="card notifications-page-card">
     <div class="card-header">
         <h2 class="card-title">
             <span class="card-title-icon">
@@ -30,7 +32,7 @@
                 تعيين الكل كمقروء
             </button>
             {% endif %}
-            <button onclick="pageClearRead()" id="pageClearReadBtn" class="btn btn-danger btn-sm" style="{% if notifications|length == unread_count or notifications|length == 0 %}display:none;{% endif %}">
+            <button onclick="pageClearRead()" id="pageClearReadBtn" class="btn btn-danger btn-sm {% if notifications|length == unread_count or notifications|length == 0 %}is-hidden{% endif %}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="3 6 5 6 21 6"/>
                     <path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/>
@@ -42,7 +44,7 @@
         </div>
     </div>
 
-    <div class="table-wrapper" style="overflow-x:hidden;">
+    <div class="table-wrapper notifications-table-wrapper">
         {% if notifications %}
         <div class="notifications-list-page">
             {% for notification in notifications %}
@@ -88,8 +90,7 @@
                                 {% endif %}
                                 <span class="notification-time-page">{{ notification.created_at|date:"Y-m-d H:i" }}</span>
                                 <button type="button"
-                                        class="notif-delete-btn page-delete-btn"
-                                        style="display:{% if notification.is_read %}flex{% else %}none{% endif %};"
+                                        class="notif-delete-btn page-delete-btn {% if not notification.is_read %}is-hidden{% endif %}"
                                         aria-label="حذف الإشعار"
                                         onclick="pageDeleteNotification({{ notification.id }}, event)">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

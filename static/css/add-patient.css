@@ -1,0 +1,91 @@
+.patient-form-grid {
+    grid-template-columns: 1fr 1.3fr !important;
+}
+
+.patient-form-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.queue-info-card,
+.patient-meta-card,
+.info-notice-box,
+.stats-info-box {
+    border-radius: 14px;
+}
+
+.info-cards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.queue-display {
+    width: 62px;
+    height: 62px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 800;
+    box-shadow: 0 6px 14px rgba(46, 87, 135, 0.25);
+    flex-shrink: 0;
+}
+
+.queue-text {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--primary-text);
+}
+
+@media (max-width: 1024px) {
+    .patient-form-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .patient-form-actions {
+        flex-direction: column;
+    }
+
+    .patient-form-actions .btn {
+        width: 100%;
+    }
+
+    .info-cards-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .queue-info-card {
+        padding: 16px !important;
+    }
+
+    .queue-display {
+        width: 54px !important;
+        height: 54px !important;
+        font-size: 24px !important;
+    }
+
+    .queue-text {
+        font-size: 17px !important;
+    }
+
+    .info-notice-box,
+    .stats-info-box {
+        padding: 14px !important;
+    }
+
+    .info-notice-box > div,
+    .stats-info-box > div {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+
+    .stats-info-box .stat-row {
+        gap: 12px !important;
+    }
+}

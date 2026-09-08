@@ -1,0 +1,29 @@
+.notifications-page-card {
+    overflow-x: hidden;
+}
+
+.notifications-table-wrapper {
+    overflow-x: hidden;
+}
+
+.is-hidden {
+    display: none !important;
+}
+
+.notification-actions-stack {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .card-actions {
+        width: 100%;
+    }
+
+    .card-actions .btn {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+}

@@ -1,14 +1,16 @@
 {% extends 'base_doctor.html' %}
+{% load static %}
 
 {% block title %}ملف المريض {{ patient.name }} - نظام إدارة العيادة{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/patient-detail.css' %}">{% endblock %}
 
 {% block page_title %}ملف المريض: {{ patient.name }}{% endblock %}
 {% block page_subtitle %}رقم الملف: #{{ patient.id }} | العمر: {{ patient.age }} سنة{% endblock %}
 
 {% block content %}
 
-<div class="card" style="margin-bottom:24px;">
-    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+<div class="card patient-summary-card">
+    <div class="card-header patient-summary-header">
         <h2 class="card-title">
             <span class="card-title-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -18,9 +20,9 @@
             </span>
             معلومات المريض
         </h2>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div class="patient-summary-actions">
             {% if patient.has_file %}
-                <span style="display:inline-flex;align-items:center;gap:7px;padding:8px 14px;background:#F8F9FA;border-radius:10px;font-size:12.5px;font-weight:600;color:#8C9FB4;border:1px solid #EDEEEF;">
+                <span class="patient-file-status-badge">
                     الملف مُنشأ{% if patient.file_created_at %} ({{ patient.file_created_at|date:"Y-m-d" }}){% endif %}
                 </span>
             {% else %}
@@ -33,36 +35,36 @@
             {% endif %}
         </div>
     </div>
-    <div style="padding:20px;">
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;">
+    <div class="patient-summary-body">
+        <div class="patient-summary-grid">
             <div>
-                <div style="font-size:13px;color:#64748b;margin-bottom:4px;">اسم المريض</div>
-                <div style="font-size:16px;font-weight:600;color:#1e293b;">{{ patient.name }}</div>
+                <div class="patient-field-label">اسم المريض</div>
+                <div class="patient-field-value">{{ patient.name }}</div>
             </div>
             <div>
-                <div style="font-size:13px;color:#64748b;margin-bottom:4px;">العمر</div>
-                <div style="font-size:16px;color:#1e293b;">{{ patient.age }} سنة</div>
+                <div class="patient-field-label">العمر</div>
+                <div class="patient-field-value">{{ patient.age }} سنة</div>
             </div>
             <div>
-                <div style="font-size:13px;color:#64748b;margin-bottom:4px;">رقم الهاتف</div>
-                <div style="font-size:16px;color:#1e293b;direction:ltr;unicode-bidi:embed;">{{ patient.phone|default:"—" }}</div>
+                <div class="patient-field-label">رقم الهاتف</div>
+                <div class="patient-field-value patient-phone-ltr">{{ patient.phone|default:"—" }}</div>
             </div>
             <div>
-                <div style="font-size:13px;color:#64748b;margin-bottom:4px;">تاريخ التسجيل</div>
-                <div style="font-size:16px;color:#1e293b;">{{ patient.queue_date|date:"Y-m-d" }}</div>
+                <div class="patient-field-label">تاريخ التسجيل</div>
+                <div class="patient-field-value">{{ patient.queue_date|date:"Y-m-d" }}</div>
             </div>
         </div>
         {% if patient.complaint %}
-        <div style="margin-top:16px;">
-            <div style="font-size:13px;color:#64748b;margin-bottom:4px;">المرض / الشكوى الرئيسية</div>
-            <div style="font-size:15px;color:#1e293b;line-height:1.7;">{{ patient.complaint }}</div>
+        <div class="patient-complaint-block">
+            <div class="patient-field-label">المرض / الشكوى الرئيسية</div>
+            <div class="patient-field-body">{{ patient.complaint }}</div>
         </div>
         {% endif %}
     </div>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
-    <div class="card">
+<div class="patient-detail-grid">
+    <div class="card patient-note-card">
         <div class="card-header">
             <h2 class="card-title">
                 <span class="card-title-icon">
@@ -76,24 +78,24 @@
                 سجل الملاحظات ({{ notes_count }})
             </h2>
         </div>
-        <div style="padding:20px;">
+        <div class="patient-card-body">
             {% if notes %}
-            <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="patient-note-list">
                 {% for note in notes %}
-                <div style="background:#f8fafc;padding:16px;border-radius:8px;border:1px solid #e2e8f0;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <div style="font-weight:600;color:#1e293b;">{{ note.title|default:"ملاحظة عامة" }}</div>
-                        <div style="font-size:12px;color:#64748b;">{{ note.visit_date|date:"Y-m-d" }}</div>
+                <div class="patient-note-item">
+                    <div class="patient-note-header">
+                        <div class="patient-note-title">{{ note.title|default:"ملاحظة عامة" }}</div>
+                        <div class="patient-note-date">{{ note.visit_date|date:"Y-m-d" }}</div>
                     </div>
-                    <div style="font-size:14px;color:#475569;line-height:1.7;">{{ note.content }}</div>
+                    <div class="patient-note-body">{{ note.content }}</div>
                     {% if note.doctor %}
-                    <div style="margin-top:8px;font-size:12px;color:#64748b;">كتبها: {{ note.doctor.get_full_name|default:note.doctor.username }}</div>
+                    <div class="patient-note-author">كتبها: {{ note.doctor.get_full_name|default:note.doctor.username }}</div>
                     {% endif %}
                 </div>
                 {% endfor %}
             </div>
             {% else %}
-            <div class="empty-state" style="padding:40px 20px;text-align:center;">
+            <div class="empty-state patient-empty-state">
                 <div class="empty-state-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -107,7 +109,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card patient-attachment-card">
         <div class="card-header">
             <h2 class="card-title">
                 <span class="card-title-icon">
@@ -118,33 +120,33 @@
                 المرفقات ({{ attachments_count }})
             </h2>
         </div>
-        <div style="padding:20px;">
+        <div class="patient-card-body">
             {% if attachments %}
-            <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="patient-attachment-list">
                 {% for attachment in attachments %}
-                <div style="display:flex;align-items:center;gap:12px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+                <div class="patient-attachment-row">
                     {% if attachment.is_image %}
-                    <div style="width:48px;height:48px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
-                        <img src="{{ attachment.file.url }}" alt="{{ attachment.caption }}" style="width:100%;height:100%;object-fit:cover;">
+                    <div class="patient-attachment-thumb">
+                        <img src="{{ attachment.file.url }}" alt="{{ attachment.caption }}">
                     </div>
                     {% else %}
-                    <div style="width:48px;height:48px;background:#e2e8f0;border-radius:4px;display:flex;align-items:center;justify-content:center;">
+                    <div class="patient-attachment-thumb patient-attachment-thumb-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
                             <polyline points="13 2 13 9 20 9"/>
                         </svg>
                     </div>
                     {% endif %}
-                    <div style="flex:1;">
-                        <div style="font-weight:600;color:#1e293b;font-size:14px;">{{ attachment.caption|default:attachment.filename }}</div>
-                        <div style="font-size:12px;color:#64748b;">{{ attachment.uploaded_at|date:"Y-m-d H:i" }}</div>
+                    <div class="patient-attachment-info">
+                        <div class="patient-attachment-title">{{ attachment.caption|default:attachment.filename }}</div>
+                        <div class="patient-attachment-date">{{ attachment.uploaded_at|date:"Y-m-d H:i" }}</div>
                     </div>
-                    <a href="{{ attachment.file.url }}" target="_blank" style="padding:8px 16px;background:#4f46e5;color:white;text-decoration:none;border-radius:6px;font-size:13px;">عرض</a>
+                    <a href="{{ attachment.file.url }}" target="_blank" class="btn btn-primary btn-sm">عرض</a>
                 </div>
                 {% endfor %}
             </div>
             {% else %}
-            <div class="empty-state" style="padding:40px 20px;text-align:center;">
+            <div class="empty-state patient-empty-state">
                 <div class="empty-state-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
@@ -158,7 +160,7 @@
     </div>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;">
+<div class="patient-actions-grid">
     <div class="card">
         <div class="card-header">
             <h2 class="card-title">
@@ -171,22 +173,22 @@
                 إضافة ملاحظة جديدة
             </h2>
         </div>
-        <div style="padding:20px;">
+        <div class="patient-form-card">
             <form method="post" action="{% url 'doctor_patient_add_note' patient.id %}">
                 {% csrf_token %}
-                <div style="margin-bottom:16px;">
-                    <label style="display:block;margin-bottom:6px;font-size:13px;color:#64748b;">{{ note_form.title.label }}</label>
+                <div class="patient-form-group">
+                    <label class="patient-form-label">{{ note_form.title.label }}</label>
                     {{ note_form.title }}
                 </div>
-                <div style="margin-bottom:16px;">
-                    <label style="display:block;margin-bottom:6px;font-size:13px;color:#64748b;">{{ note_form.content.label }}</label>
+                <div class="patient-form-group">
+                    <label class="patient-form-label">{{ note_form.content.label }}</label>
                     {{ note_form.content }}
                 </div>
-                <div style="margin-bottom:16px;">
-                    <label style="display:block;margin-bottom:6px;font-size:13px;color:#64748b;">{{ note_form.visit_date.label }}</label>
+                <div class="patient-form-group">
+                    <label class="patient-form-label">{{ note_form.visit_date.label }}</label>
                     {{ note_form.visit_date }}
                 </div>
-                <button type="submit" style="padding:10px 20px;background:#10b981;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;">إضافة الملاحظة</button>
+                <button type="submit" class="btn btn-success btn-sm">إضافة الملاحظة</button>
             </form>
         </div>
     </div>
@@ -202,25 +204,25 @@
                 رفع ملف / صورة
             </h2>
         </div>
-        <div style="padding:20px;">
+        <div class="patient-form-card">
             <form method="post" action="{% url 'doctor_patient_add_attachment' patient.id %}" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div style="margin-bottom:16px;">
-                    <label style="display:block;margin-bottom:6px;font-size:13px;color:#64748b;">{{ attachment_form.file.label }}</label>
+                <div class="patient-form-group">
+                    <label class="patient-form-label">{{ attachment_form.file.label }}</label>
                     {{ attachment_form.file }}
                 </div>
-                <div style="margin-bottom:16px;">
-                    <label style="display:block;margin-bottom:6px;font-size:13px;color:#64748b;">{{ attachment_form.caption.label }}</label>
+                <div class="patient-form-group">
+                    <label class="patient-form-label">{{ attachment_form.caption.label }}</label>
                     {{ attachment_form.caption }}
                 </div>
-                <button type="submit" style="padding:10px 20px;background:#10b981;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;">رفع الملف</button>
+                <button type="submit" class="btn btn-success btn-sm">رفع الملف</button>
             </form>
         </div>
     </div>
 </div>
 
-<div style="margin-top:24px;">
-    <a href="{% url 'doctor_patient_file' %}" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#64748b;color:white;text-decoration:none;border-radius:8px;font-size:14px;">
+<div class="patient-back-wrap">
+    <a href="{% url 'doctor_patient_file' %}" class="patient-back-link">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"/>
             <polyline points="12 19 5 12 12 5"/>

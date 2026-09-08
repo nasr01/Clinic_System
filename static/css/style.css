@@ -22,7 +22,6 @@
     --border: #EDEEEF;
     --border-strong: #DEE2E6;
     --sidebar-width: 280px;
-    --sidebar-width-collapsed: 0px;
     --header-height: 72px;
     --radius-sm: 8px;
     --radius-md: 12px;
@@ -1829,10 +1828,10 @@ input, select, textarea {
     .attendance-history-item {
         grid-template-columns: 1fr 1fr;
     }
-}
 
-@media (max-width: 768px) {
     .sidebar {
+        width: 85%;
+        max-width: 320px;
         transform: translateX(100%);
     }
 
@@ -1844,6 +1843,12 @@ input, select, textarea {
         margin-right: 0;
     }
 
+    .mobile-menu-btn {
+        display: flex;
+    }
+}
+
+@media (max-width: 768px) {
     .top-header {
         padding: 0 18px;
     }
@@ -2192,12 +2197,6 @@ input, select, textarea {
         width: 38px;
         height: 38px;
         font-size: 16px;
-    }
-
-    /* Sidebar - Full Width on Mobile */
-    .sidebar {
-        width: 85%;
-        max-width: 320px;
     }
 
     /* Stats Grid - Always Single Column on Very Small Screens */
@@ -2672,6 +2671,13 @@ input, select, textarea {
     .notification-count-page {
         font-size: 11px;
         padding: 2px 8px;
+    }
+
+    .card-actions .btn {
+        width: 100%;
+    }
+}
+
     }
 
     .card-actions .btn {

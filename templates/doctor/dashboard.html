@@ -1,6 +1,8 @@
 {% extends 'base_doctor.html' %}
+{% load static %}
 
 {% block title %}لوحة تحكم الطبيب - نظام إدارة العيادة{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/doctor-dashboard.css' %}">{% endblock %}
 
 {% block page_title %}لوحة التحكم{% endblock %}
 {% block page_subtitle %}مرحبًا د. {{ user.full_name|default:user.username }}{% endblock %}
@@ -121,15 +123,15 @@
             </div>
             <div class="legend-items">
                 <div class="legend-item">
-                    <span class="legend-color" style="background:#C9A84C;"></span>
+                    <span class="legend-color legend-color-warning"></span>
                     <span>في الانتظار ({{ waiting_patients }})</span>
                 </div>
                 <div class="legend-item">
-                    <span class="legend-color" style="background:#2E5787;"></span>
+                    <span class="legend-color legend-color-primary"></span>
                     <span>جاري الكشف ({{ in_examination_patients }})</span>
                 </div>
                 <div class="legend-item">
-                    <span class="legend-color" style="background:#2D7A5E;"></span>
+                    <span class="legend-color legend-color-success"></span>
                     <span>تم الكشف ({{ completed_patients }})</span>
                 </div>
             </div>
@@ -139,7 +141,7 @@
     <div class="card">
         <div class="card-header">
             <h2 class="card-title">
-                <span class="card-title-icon" style="background:#FCFCDC;color:#8B7A1F;">
+                <span class="card-title-icon card-title-icon-warning">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                         <circle cx="8.5" cy="7" r="4"/>
@@ -150,76 +152,10 @@
                 نظرة سريعة
             </h2>
         </div>
-        <div class="card-body quick-links-container">
-            <style>
-                .quick-links-container {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 16px;
-                }
-                .quick-link-card {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding: 18px;
-                    border-radius: 12px;
-                    transition: all .2s ease;
-                }
-                .quick-link-card:hover {
-                    transform: translateY(-2px);
-                }
-                .quick-link-content {
-                    display: flex;
-                    align-items: center;
-                    gap: 14px;
-                    flex: 1;
-                }
-                .quick-link-icon {
-                    width: 48px;
-                    height: 48px;
-                    border-radius: 10px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 22px;
-                    flex-shrink: 0;
-                }
-                .quick-link-text h3 {
-                    font-size: 15px;
-                    font-weight: 700;
-                    color: #21354C;
-                    margin: 0;
-                }
-                .quick-link-text p {
-                    font-size: 12.5px;
-                    margin: 2px 0 0 0;
-                }
-                @media (max-width: 640px) {
-                    .quick-link-card {
-                        padding: 14px;
-                        flex-direction: column;
-                        align-items: flex-start;
-                        gap: 12px;
-                    }
-                    .quick-link-icon {
-                        width: 42px;
-                        height: 42px;
-                        font-size: 20px;
-                    }
-                    .quick-link-text h3 {
-                        font-size: 14px;
-                    }
-                    .quick-link-text p {
-                        font-size: 12px;
-                    }
-                    .quick-link-card svg:last-child {
-                        display: none;
-                    }
-                }
-            </style>
-            <a href="{% url 'doctor_patients' %}" class="quick-link-card" style="background:#D7E7F7;border:1px solid rgba(46, 87, 135, 0.14);">
+        <div class="card-body dashboard-quick-links">
+            <a href="{% url 'doctor_patients' %}" class="quick-link-card quick-link-card-primary">
                 <div class="quick-link-content">
-                    <div class="quick-link-icon" style="background:#2E5787;color:white;">
+                    <div class="quick-link-icon quick-link-icon-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                             <circle cx="9" cy="7" r="4"/>
@@ -227,17 +163,17 @@
                     </div>
                     <div class="quick-link-text">
                         <h3>إدارة مرضى اليوم</h3>
-                        <p style="color:#2E5787;">عرض كامل لقائمة الانتظار والإجراءات</p>
+                        <p class="quick-link-desc-primary">عرض كامل لقائمة الانتظار والإجراءات</p>
                     </div>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2E5787" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="quick-link-arrow quick-link-arrow-primary" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="15 18 9 12 15 6"/>
                 </svg>
             </a>
 
-            <a href="{% url 'doctor_employees' %}" class="quick-link-card" style="background:#DBFDF2;border:1px solid rgba(45, 122, 94, 0.16);">
+            <a href="{% url 'doctor_employees' %}" class="quick-link-card quick-link-card-success">
                 <div class="quick-link-content">
-                    <div class="quick-link-icon" style="background:#2D7A5E;color:white;">
+                    <div class="quick-link-icon quick-link-icon-success">
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
                             <circle cx="9" cy="7" r="4"/>
@@ -247,10 +183,10 @@
                     </div>
                     <div class="quick-link-text">
                         <h3>إدارة الموظفين</h3>
-                        <p style="color:#2D7A5E;">إدارة حسابات السكرتارية والحضور</p>
+                        <p class="quick-link-desc-success">إدارة حسابات السكرتارية والحضور</p>
                     </div>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2D7A5E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="quick-link-arrow quick-link-arrow-success" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="15 18 9 12 15 6"/>
                 </svg>
             </a>
@@ -261,7 +197,7 @@
 <div class="card">
     <div class="card-header">
         <h2 class="card-title">
-            <span class="card-title-icon" style="background:#D7E7F7;color:#375391;">
+            <span class="card-title-icon card-title-icon-primary-soft">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                     <line x1="16" y1="2" x2="16" y2="6"/>
@@ -296,9 +232,9 @@
                     <td>
                         <span class="queue-number">#{{ patient.queue_number }}</span>
                     </td>
-                    <td style="font-weight:600;color:#21354C;">{{ patient.name }}</td>
+                    <td class="patient-name-cell">{{ patient.name }}</td>
                     <td>{{ patient.age }} سنة</td>
-                    <td style="direction:ltr;unicode-bidi:embed;">{{ patient.phone }}</td>
+                    <td class="patient-phone-cell">{{ patient.phone }}</td>
                     <td>
                         <span class="status-badge status-{{ patient.status }}">
                             {{ patient.get_status_display }}

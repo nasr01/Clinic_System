@@ -1,6 +1,8 @@
 {% extends 'base_doctor.html' %}
+{% load static %}
 
 {% block title %}إدارة الموظفين - نظام إدارة العيادة{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/employees.css' %}">{% endblock %}
 
 {% block page_title %}إدارة الموظفين{% endblock %}
 {% block page_subtitle %}إدارة حسابات السكرتارية وسجلات الحضور{% endblock %}
@@ -8,17 +10,10 @@
 {% block content %}
 
 <div class="grid-row cols-2 employees-grid">
-    <style>
-        @media (max-width: 1024px) {
-            .employees-grid {
-                grid-template-columns: 1fr !important;
-            }
-        }
-    </style>
     <div class="card">
         <div class="card-header">
             <h2 class="card-title">
-                <span class="card-title-icon" style="background:#D7E7F7;color:#2E5787;">
+                <span class="card-title-icon card-title-icon-primary-soft">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
                         <circle cx="9" cy="7" r="4"/>
@@ -28,24 +23,24 @@
                 </span>
                 الموظفون الحاليون
             </h2>
-            <span style="font-size:13px;font-weight:600;background:#D7E7F7;color:#2E5787;padding:5px 12px;border-radius:20px;">
+            <span class="employee-count-badge">
                 {{ employees|length }} موظف
             </span>
         </div>
         <div class="card-body">
             {% if employees %}
-            <div style="display:flex;flex-direction:column;gap:14px;">
+            <div class="employee-list">
                 {% for emp in employees %}
                 <div class="employee-card" data-modal-target="empModal-{{ emp.id }}" onclick="openEmployeeModal('{{ emp.id }}', '{{ emp.username|escapejs }}', '{{ emp.full_name|escapejs }}', {% if emp.is_active %}1{% else %}0{% endif %}, '{{ emp.date_joined|date:"j F Y" }}')">
                     <div class="employee-header">
                         <div class="employee-avatar">
                             {{ emp.full_name|slice:":1" }}
                         </div>
-                        <div class="employee-details" style="flex:1;">
+                        <div class="employee-details employee-details-fluid">
                             <h4>{{ emp.full_name|default:emp.username }}</h4>
                             <p>@{{ emp.username }} · سكرتير</p>
                         </div>
-                        <span style="padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;background:{% if emp.is_active %}#DBFDF2;color:#2D7A5E;{% else %}#FEE2E2;color:#E87070;{% endif %}">
+                        <span class="employee-status-badge {% if emp.is_active %}is-active{% else %}is-inactive{% endif %}">
                             {% if emp.is_active %}نشط{% else %}غير نشط{% endif %}
                         </span>
                     </div>
@@ -175,7 +170,7 @@
                     >
                 </div>
 
-                <button type="submit" name="create_employee" class="btn btn-primary btn-block btn-lg" style="margin-top:8px;">
+                <button type="submit" name="create_employee" class="btn btn-primary btn-block btn-lg employee-submit-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="12" y1="5" x2="12" y2="19"/>
                         <line x1="5" y1="12" x2="19" y2="12"/>
@@ -192,7 +187,7 @@
     <div class="modal">
         <div class="modal-header">
             <h3 class="modal-title">
-                <span style="width:36px;height:36px;border-radius:10px;background:#D7E7F7;color:#2E5787;display:flex;align-items:center;justify-content:center;font-size:18px;">
+                <span class="employee-modal-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                         <line x1="16" y1="2" x2="16" y2="6"/>
@@ -209,25 +204,7 @@
         <div class="modal-body">
             {% with emp.attendances.all|slice:":15" as attendances %}
             {% if attendances %}
-            <div class="attendance-history-list">
-                <style>
-                    @media (max-width: 640px) {
-                        .attendance-history-item {
-                            grid-template-columns: 1fr !important;
-                            gap: 10px;
-                        }
-                        .attendance-history-date {
-                            font-size: 13px;
-                        }
-                        .attendance-history-time {
-                            font-size: 12px;
-                        }
-                        .attendance-history-duration {
-                            font-size: 12px;
-                            padding: 5px 10px;
-                        }
-                    }
-                </style>
+                <div class="attendance-history-list">
                 {% for att in attendances %}
                 <div class="attendance-history-item">
                     <div class="attendance-history-date">
@@ -250,8 +227,8 @@
                 {% endfor %}
             </div>
             {% else %}
-            <div class="empty-state" style="padding:40px 10px;">
-                <div class="empty-state-icon" style="font-size:52px;">
+            <div class="empty-state employee-empty-state">
+                <div class="empty-state-icon employee-empty-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#8C9FB4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                         <line x1="16" y1="2" x2="16" y2="6"/>

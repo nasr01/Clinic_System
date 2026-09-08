@@ -1,24 +1,19 @@
 {% extends 'base_secretary.html' %}
+{% load static %}
 
 {% block title %}الحضور والانصراف - نظام إدارة العيادة{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/attendance.css' %}">{% endblock %}
 
 {% block page_title %}الحضور والانصراف{% endblock %}
 {% block page_subtitle %}تسجيل وقت الحضور والانصراف اليومي{% endblock %}
 
 {% block content %}
 
-<div class="grid-row cols-2" style="grid-template-columns:1.2fr 1fr;">
-    <style>
-        @media (max-width: 1024px) {
-            .grid-row.cols-2 {
-                grid-template-columns: 1fr !important;
-            }
-        }
-    </style>
+<div class="grid-row cols-2 attendance-page-grid">
     <div class="card">
         <div class="card-header">
             <h2 class="card-title">
-                <span class="card-title-icon" style="background:#D7E7F7;color:#2E5787;">
+                <span class="card-title-icon card-title-icon-primary-soft">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                         <line x1="16" y1="2" x2="16" y2="6"/>
@@ -28,7 +23,7 @@
                 </span>
                 حالة الحضور اليوم
             </h2>
-            <span style="font-size:13px;font-weight:600;background:#D7E7F7;color:#2E5787;padding:5px 12px;border-radius:20px;">
+            <span class="attendance-status-chip is-primary">
                 {{ today|date:"l j F Y" }}
             </span>
         </div>
@@ -56,8 +51,8 @@
                             <polyline points="12 6 12 12 16 14"/>
                         </svg>
                     </div>
-                    <div class="attendance-status-text" style="color:#2D7A5E;">أنت حاضر الآن</div>
-                    <div class="attendance-status-desc" style="color:#21354C;">
+                    <div class="attendance-status-text attendance-status-text-success">أنت حاضر الآن</div>
+                    <div class="attendance-status-desc attendance-status-desc-primary">
                         تم تسجيل حضورك. لا تنسى تسجيل الانصراف في نهاية اليوم.
                     </div>
                 </div>
@@ -70,8 +65,8 @@
                         <path d="M12 6v6l4 2"/>
                     </svg>
                 </div>
-                <div class="attendance-status-text" style="color:#8B7A1F;">لم يتم تسجيل الحضور بعد</div>
-                <div class="attendance-status-desc" style="color:#8B7A1F;">
+                <div class="attendance-status-text attendance-status-text-warning">لم يتم تسجيل الحضور بعد</div>
+                <div class="attendance-status-desc attendance-status-desc-warning">
                     ابدأ يومك بتسجيل الحضور الآن
                 </div>
             </div>
@@ -91,14 +86,14 @@
                             {% if attendance and attendance.check_in %}
                                 {{ attendance.check_in|date:"h:i A" }}
                             {% else %}
-                                <span style="color:#8C9FB4;font-weight:500;">لم يتم التسجيل</span>
+                                <span class="attendance-muted">لم يتم التسجيل</span>
                             {% endif %}
                         </div>
                     </div>
                 </div>
 
                 <div class="attendance-info-item">
-                    <div class="attendance-info-icon" style="color:#E87070;background:#FEE2E2;">
+                    <div class="attendance-info-icon attendance-info-icon-danger">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
                             <polyline points="10 17 15 12 10 7"/>
@@ -111,14 +106,14 @@
                             {% if attendance and attendance.check_out %}
                                 {{ attendance.check_out|date:"h:i A" }}
                             {% else %}
-                                <span style="color:#8C9FB4;font-weight:500;">لم يتم التسجيل</span>
+                                <span class="attendance-muted">لم يتم التسجيل</span>
                             {% endif %}
                         </div>
                     </div>
                 </div>
 
                 <div class="attendance-info-item">
-                    <div class="attendance-info-icon" style="color:#375391;background:#D7E7F7;">
+                    <div class="attendance-info-icon attendance-info-icon-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                             <line x1="16" y1="2" x2="16" y2="6"/>
@@ -133,7 +128,7 @@
                 </div>
 
                 <div class="attendance-info-item">
-                    <div class="attendance-info-icon" style="color:#2D7A5E;background:#DBFDF2;">
+                    <div class="attendance-info-icon attendance-info-icon-success">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10"/>
                             <polyline points="12 6 12 12 16 14"/>
@@ -145,7 +140,7 @@
                             {% if attendance %}
                                 {{ attendance.work_duration }}
                             {% else %}
-                                <span style="color:#8C9FB4;font-weight:500;">-</span>
+                                <span class="attendance-muted">-</span>
                             {% endif %}
                         </div>
                     </div>
@@ -162,7 +157,7 @@
                         </svg>
                         تسجيل الحضور
                     </button>
-                    <button type="button" class="btn btn-secondary btn-lg" disabled style="opacity:0.5;cursor:not-allowed;">
+                    <button type="button" class="btn btn-secondary btn-lg is-disabled" disabled>
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
                             <polyline points="10 17 15 12 10 7"/>
@@ -171,7 +166,7 @@
                         تسجيل الانصراف
                     </button>
                 {% elif attendance and not attendance.check_out %}
-                    <button type="button" class="btn btn-success btn-lg" disabled style="opacity:0.5;cursor:not-allowed;">
+                    <button type="button" class="btn btn-success btn-lg is-disabled" disabled>
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                             <polyline points="22 4 12 14.01 9 11.01"/>
@@ -187,14 +182,14 @@
                         تسجيل الانصراف
                     </button>
                 {% else %}
-                    <button type="button" class="btn btn-secondary btn-lg" disabled style="opacity:0.5;cursor:not-allowed;">
+                    <button type="button" class="btn btn-secondary btn-lg is-disabled" disabled>
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                             <polyline points="22 4 12 14.01 9 11.01"/>
                         </svg>
                         انتهى الحضور
                     </button>
-                    <button type="button" class="btn btn-secondary btn-lg" disabled style="opacity:0.5;cursor:not-allowed;">
+                    <button type="button" class="btn btn-secondary btn-lg is-disabled" disabled>
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
                             <polyline points="10 17 15 12 10 7"/>
@@ -210,7 +205,7 @@
     <div class="card">
         <div class="card-header">
             <h2 class="card-title">
-                <span class="card-title-icon" style="background:#DBFDF2;color:#2D7A5E;">
+                <span class="card-title-icon card-title-icon-success-soft">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                         <polyline points="14 2 14 8 20 8"/>
@@ -240,8 +235,8 @@
                 {% endfor %}
             </div>
             {% else %}
-            <div class="empty-state" style="padding:30px 10px;">
-                <div class="empty-state-icon" style="font-size:48px;">
+            <div class="empty-state empty-state-compact">
+                <div class="empty-state-icon empty-state-icon-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                         <line x1="16" y1="2" x2="16" y2="6"/>

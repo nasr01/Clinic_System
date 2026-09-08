@@ -1,6 +1,8 @@
 {% extends 'base_secretary.html' %}
+{% load static %}
 
 {% block title %}لوحة تحكم السكرتارية - نظام إدارة العيادة{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/secretary-dashboard.css' %}">{% endblock %}
 
 {% block page_title %}لوحة التحكم{% endblock %}
 {% block page_subtitle %}صباح الخير، {{ user.full_name|default:user.username }}{% endblock %}
@@ -121,15 +123,15 @@
             </div>
             <div class="legend-items">
                 <div class="legend-item">
-                    <span class="legend-color" style="background:#C9A84C;"></span>
+                    <span class="legend-color legend-color-warning"></span>
                     <span>في الانتظار ({{ waiting_patients }})</span>
                 </div>
                 <div class="legend-item">
-                    <span class="legend-color" style="background:#2E5787;"></span>
+                    <span class="legend-color legend-color-primary"></span>
                     <span>جاري الكشف ({{ in_examination_patients }})</span>
                 </div>
                 <div class="legend-item">
-                    <span class="legend-color" style="background:#2D7A5E;"></span>
+                    <span class="legend-color legend-color-success"></span>
                     <span>تم الكشف ({{ completed_patients }})</span>
                 </div>
             </div>
@@ -164,7 +166,7 @@
 <div class="card">
     <div class="card-header">
         <h2 class="card-title">
-            <span class="card-title-icon" style="background:#D7E7F7;color:#375391;">
+                <span class="card-title-icon card-title-icon-primary-soft">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                     <line x1="16" y1="2" x2="16" y2="6"/>
@@ -199,9 +201,9 @@
                     <td>
                         <span class="queue-number">#{{ patient.queue_number }}</span>
                     </td>
-                    <td style="font-weight:600;color:#21354C;">{{ patient.name }}</td>
+                    <td class="patient-name-cell">{{ patient.name }}</td>
                     <td>{{ patient.age }} سنة</td>
-                    <td style="direction:ltr;unicode-bidi:embed;">{{ patient.phone }}</td>
+                    <td class="patient-phone-cell">{{ patient.phone }}</td>
                     <td>{{ patient.created_at|date:"h:i A" }}</td>
                     <td>
                         <span class="status-badge status-{{ patient.status }}">

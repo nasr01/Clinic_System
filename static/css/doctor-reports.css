@@ -1,0 +1,204 @@
+.reports-card {
+    margin-bottom: 24px;
+}
+
+.reports-filter-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #8C9FB4;
+    margin-bottom: 8px;
+}
+
+.reports-date-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #21354C;
+    transition: all 0.2s ease;
+}
+
+.reports-date-input:focus {
+    border-color: #2E5787;
+    box-shadow: 0 0 0 3px rgba(46, 87, 135, 0.08);
+}
+
+.reports-submit-btn {
+    padding: 12px 24px;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.reports-submit-icon {
+    vertical-align: -3px;
+    margin-left: 6px;
+}
+
+.reports-stat-card {
+    padding: 18px;
+}
+
+.reports-stat-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+}
+
+.reports-stat-label {
+    font-size: 13px;
+}
+
+.reports-stat-value {
+    font-size: 28px;
+}
+
+.reports-date-range {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.reports-date-range-text {
+    font-size: 13px;
+    color: #8C9FB4;
+    font-weight: 500;
+}
+
+.reports-date-range-icon {
+    vertical-align: -3px;
+    margin-left: 3px;
+}
+
+.reports-visit-name {
+    font-weight: 600;
+    color: var(--primary-text);
+    font-size: 14.5px;
+}
+
+.reports-visit-icon {
+    vertical-align: -2px;
+    margin-left: 4px;
+}
+
+.reports-time-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #8C9FB4;
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+.reports-time-empty {
+    color: #CBD5E1;
+}
+
+.reports-duration-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #F8F9FA;
+    border-radius: 8px;
+    color: #2E5787;
+    font-size: 13px;
+    font-weight: 700;
+    border: 1px solid #E5E7EB;
+}
+
+@media (max-width: 768px) {
+    .reports-submit-btn {
+        width: 100%;
+    }
+}
+
+.reports-filter-form {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: end;
+}
+
+.filter-inputs,
+.reports-stats-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.filter-inputs {
+    grid-template-columns: 1fr 1fr;
+}
+
+.reports-stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+    margin-bottom: 24px;
+}
+
+.reports-stats-grid .stat-card {
+    padding: 18px;
+}
+
+.reports-stats-grid .stat-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+}
+
+.reports-stats-grid .stat-label {
+    font-size: 13px;
+}
+
+.reports-stats-grid .stat-value {
+    font-size: 28px;
+}
+
+.visit-type-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.visit-type-pill.is-examination {
+    background: var(--success-light);
+    color: var(--success-dark);
+    border-color: rgba(45, 122, 94, 0.16);
+}
+
+.visit-type-pill.is-consultation {
+    background: var(--primary-light);
+    color: var(--primary);
+    border-color: rgba(46, 87, 135, 0.16);
+}
+
+@media (max-width: 768px) {
+    .reports-filter-form,
+    .filter-inputs {
+        grid-template-columns: 1fr;
+    }
+
+    .reports-filter-form {
+        align-items: stretch;
+    }
+
+    .reports-submit-btn {
+        width: 100%;
+    }
+
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .reports-stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+}

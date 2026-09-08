@@ -1,0 +1,194 @@
+.patient-file-stats {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+    margin-bottom: 24px;
+}
+
+.patient-file-stat-card {
+    padding: 18px;
+}
+
+.patient-file-stat-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+}
+
+.patient-file-stat-label {
+    font-size: 13px;
+}
+
+.patient-file-stat-value {
+    font-size: 28px;
+}
+
+.patient-file-action-link {
+    white-space: nowrap;
+}
+
+.patient-file-create-title {
+    margin: 0 0 16px;
+    font-size: 16px;
+    color: #1e293b;
+}
+
+.patient-file-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.patient-file-create-spacer {
+    margin-top: 16px;
+}
+
+.patient-file-create-actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+}
+
+.patient-file-name {
+    font-weight: 600;
+    color: var(--primary-text);
+    font-size: 14.5px;
+}
+
+.patient-file-phone {
+    direction: ltr;
+    unicode-bidi: embed;
+}
+
+.patient-file-complaint-text {
+    display: block;
+    line-height: 1.7;
+}
+
+.patient-file-empty {
+    color: #8C9FB4;
+    font-size: 13px;
+}
+
+.patient-file-stats .stat-card {
+    padding: 18px;
+}
+
+.patient-file-stats .stat-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+}
+
+.patient-file-stats .stat-label {
+    font-size: 13px;
+}
+
+.patient-file-stats .stat-value {
+    font-size: 28px;
+}
+
+.patient-file-toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.patient-file-search {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.patient-file-search input,
+.patient-file-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--surface);
+    color: var(--primary-text);
+}
+
+.patient-file-search input:focus,
+.patient-file-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(46, 87, 135, 0.08);
+}
+
+.patient-file-create-form {
+    background: var(--background);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+}
+
+.patient-file-create-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.patient-file-complaint {
+    max-width: 400px;
+}
+
+@media (max-width: 768px) {
+    .patient-file-stats {
+        grid-template-columns: 1fr !important;
+    }
+
+    .patient-file-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .patient-file-search {
+        flex-direction: column;
+    }
+
+    .patient-file-search .btn,
+    .patient-file-action-link,
+    .patient-file-create-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .patient-file-create-actions {
+        flex-direction: column;
+    }
+
+    .patient-file-toolbar,
+    .patient-file-search {
+        width: 100%;
+    }
+
+    .patient-file-create-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .table-wrapper {
+        margin-inline: -18px;
+        border-radius: 0;
+    }
+
+    .data-table {
+        min-width: 700px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 10px 12px;
+        font-size: 12.5px;
+    }
+}
+
+@media (max-width: 480px) {
+    .data-table {
+        min-width: 620px;
+    }
+}

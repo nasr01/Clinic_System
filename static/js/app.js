@@ -22,6 +22,10 @@
             document.body.appendChild(overlay);
         }
 
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+
         function openSidebar() {
             sidebar.classList.add('open');
             overlay.classList.add('active');
@@ -40,6 +44,14 @@
             } else {
                 openSidebar();
             }
+        });
+
+        sidebar.querySelectorAll('a').forEach(function (link) {
+            link.addEventListener('click', function () {
+                if (window.innerWidth <= 768) {
+                    closeSidebar();
+                }
+            });
         });
 
         overlay.addEventListener('click', closeSidebar);
