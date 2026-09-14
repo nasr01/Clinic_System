@@ -319,21 +319,21 @@ def secretary_dashboard(request):
 @login_required
 def secretary_attendance(request):
 
-    if getattr(request.user, 'role', None) != User.Role.SECRETARY:
+    if getattr(request.user, "role", None) != User.Role.SECRETARY:
         return redirect_by_role(request.user)
 
     today = timezone.localdate()
     now = timezone.now()
 
-    try:
+    # Get user's display name
+    user_name = request.user.get_full_name() or request.user.username
 
+    try:
         attendance = Attendance.objects.get(
             employee=request.user,
             date=today,
         )
-
     except Attendance.DoesNotExist:
-
         attendance = None
 
     if request.method == "POST":
@@ -357,8 +357,11 @@ def secretary_attendance(request):
                 # Create notification for doctors
                 create_notification_for_doctors(
                     notification_type=Notification.Type.ATTENDANCE,
-                    title=f"تسجيل حضور: {request.user.get_full_name|default:request.user.username}",
-                    message=f"قام {request.user.get_full_name|default:request.user.username} بتسجيل الحضور في {now.strftime('%H:%M')}",
+                    title=f"تسجيل حضور: {user_name}",
+                    message=(
+                        f"قام {user_name} بتسجيل الحضور في "
+                        f"{now.strftime('%H:%M')}"
+                    ),
                 )
 
                 messages.success(
@@ -371,9 +374,7 @@ def secretary_attendance(request):
                 attendance.check_in = now
 
                 attendance.save(
-                    update_fields=[
-                        "check_in"
-                    ]
+                    update_fields=["check_in"]
                 )
 
                 messages.success(
@@ -396,35 +397,32 @@ def secretary_attendance(request):
                 attendance.check_out = now
 
                 attendance.save(
-                    update_fields=[
-                        "check_out"
-                    ]
+                    update_fields=["check_out"]
                 )
 
                 # Create notification for doctors
                 create_notification_for_doctors(
                     notification_type=Notification.Type.ATTENDANCE,
-                    title=f"تسجيل انصراف: {request.user.get_full_name|default:request.user.username}",
-                    message=f"قام {request.user.get_full_name|default:request.user.username} بتسجيل الانصراف في {now.strftime('%H:%M')} - مدة العمل: {attendance.work_duration}",
+                    title=f"تسجيل انصراف: {user_name}",
+                    message=(
+                        f"قام {user_name} بتسجيل الانصراف في "
+                        f"{now.strftime('%H:%M')} - "
+                        f"مدة العمل: {attendance.work_duration}"
+                    ),
                 )
 
                 messages.success(
                     request,
-                    f"تم تسجيل الانصراف بنجاح. مدة العمل: {attendance.work_duration}",
+                    f"تم تسجيل الانصراف بنجاح. مدة العمل: "
+                    f"{attendance.work_duration}",
                 )
 
-        return redirect(
-            "secretary_attendance"
-        )
+        return redirect("secretary_attendance")
 
     recent_attendances = (
         Attendance.objects
-        .filter(
-            employee=request.user
-        )
-        .exclude(
-            date=today
-        )
+        .filter(employee=request.user)
+        .exclude(date=today)
         .order_by("-date")[:10]
     )
 
@@ -439,6 +437,7 @@ def secretary_attendance(request):
         "secretary/attendance.html",
         context,
     )
+
 
 
 @login_required
