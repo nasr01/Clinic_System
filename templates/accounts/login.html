@@ -1,12 +1,26 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>تسجيل الدخول - نظام إدارة العيادة</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/login.css' %}" />
-  </head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>تسجيل الدخول - نظام إدارة العيادة</title>
+
+  {% load static %}
+
+  <!-- PWA -->
+  <link rel="manifest" href="{% static 'manifest.json' %}" />
+  <meta name="theme-color" content="#2563eb" />
+
+  <!-- iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Clinic" />
+  <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="{% static 'css/login.css' %}" />
+</head>
   <body>
     <div class="login-wrapper">
       <div class="login-pattern"></div>
@@ -14,13 +28,8 @@
       <div class="login-container">
         <div class="login-card">
           <div class="login-header">
-            <div class="login-logo">
-              <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            </div>
-            <h1 class="login-title">{% if clinic_name %}{{ clinic_name }}{% else %}عيادة المبارك{% endif %}</h1>
+            <img src="{% static 'icons/ic192.png' %}" width="100" alt="Logo" />
+            <h1 class="login-title">{% if clinic_name %}{{ clinic_name }}{% else %}عيادتك{% endif %}</h1>
             <p class="login-subtitle">نظام إدارة العيادة الإلكتروني</p>
           </div>
 

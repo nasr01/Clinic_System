@@ -1,11 +1,23 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+{% load static %}
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>{% block title %}نظام إدارة العيادة{% endblock %}</title>
-    {% load static %}
+
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="theme-color" content="#2563eb">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Clinic">
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}">
+
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -14,14 +26,10 @@
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <div class="sidebar-logo">
-                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                    <circle cx="12" cy="12" r="3"/>
-                </svg>
-            </div>
+              <img src="{% static 'icons/ic192.png' %}" width="50" alt="Logo" />
+           
             <div class="sidebar-title">
-                عيادة المبارك
+                عيادتك
                 <small>نظام إدارة العيادة</small>
             </div>
         </div>
@@ -239,5 +247,24 @@
 {% load static %}
 <script src="{% static 'js/app.js' %}"></script>
 {% block extra_js %}{% endblock %}
+<script>
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+            navigator.serviceWorker.register("{% url 'service-worker' %}")
+                .then(registration => {
+                    console.log(
+                        "Service Worker registered:",
+                        registration.scope
+                    );
+                })
+                .catch(error => {
+                    console.error(
+                        "Service Worker registration failed:",
+                        error
+                    );
+                });
+        });
+    }
+</script>
 </body>
 </html>
