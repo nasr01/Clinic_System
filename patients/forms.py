@@ -49,6 +49,10 @@ class PatientForm(forms.ModelForm):
 
 
 class DoctorPatientFileForm(forms.ModelForm):
+    """
+    Form for doctors to create a new patient file.
+    Note: Queue number assignment and file creation flags are handled by QueueService.
+    """
     class Meta:
         model = Patient
         fields = ["name", "age", "phone", "complaint"]
@@ -91,26 +95,34 @@ class DoctorPatientFileForm(forms.ModelForm):
             "complaint": "المرض / الشكوى الرئيسية",
         }
 
-    def save(self, commit=True, **kwargs):
-        from django.db.models import Max
-
+    def save(self, commit=True):
+        """
+        Save the form. Business logic for queue number assignment
+        should be handled in the view using QueueService.
+        """
+        from patients.services import QueueService
+        
         instance = super().save(commit=False)
 
-        today = timezone.localdate()
-        last_queue = (
-            Patient.objects.filter(queue_date=today)
-            .aggregate(Max("queue_number"))["queue_number__max"]
-        )
-
-        instance.queue_date = today
-        instance.queue_number = (last_queue or 0) + 1
-        instance.status = Patient.Status.WAITING
-        instance.visit_type = Patient.VisitType.EXAMINATION
-        instance.has_file = True
-        instance.file_created_at = timezone.now()
-
+        # Use QueueService for thread-safe queue number assignment
+        patient_data = {
+            'name': instance.name,
+            'age': instance.age,
+            'phone': instance.phone,
+            'complaint': instance.complaint,
+            'status': Patient.Status.WAITING,
+            'visit_type': Patient.VisitType.EXAMINATION,
+            'has_file': True,
+            'file_created_at': timezone.now(),
+        }
+        
         if commit:
-            instance.save()
+            # Create patient with queue service
+            instance = QueueService.create_patient_with_queue(
+                patient_data=patient_data,
+                queue_date=timezone.localdate()
+            )
+        
         return instance
 
 

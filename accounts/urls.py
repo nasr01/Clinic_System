@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import (
+from accounts.views import (
     doctor_dashboard,
     doctor_employees,
     login_view,

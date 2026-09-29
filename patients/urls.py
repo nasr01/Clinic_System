@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import (
+from patients.views import (
     add_patient,
     clear_read_notifications,
     complete_examination,
