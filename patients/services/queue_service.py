@@ -2,7 +2,7 @@
 Queue Service
 Service for managing patient queue numbers with race condition protection
 """
-from django.db import transaction
+from django.db import connection, transaction
 from django.db.models import Max
 from django.utils import timezone
 
@@ -12,46 +12,24 @@ from patients.models import Patient
 class QueueService:
     """
     Service class for handling patient queue number generation
-    Uses database-level locking to prevent race conditions
+    Uses database-level advisory locks to prevent race conditions
     """
 
     @staticmethod
-    @transaction.atomic
-    def get_next_queue_number(queue_date=None):
+    def _get_lock_id(queue_date):
         """
-        Get the next available queue number for a given date.
-        Uses select_for_update to prevent race conditions.
-        
-        Args:
-            queue_date: Date for the queue (defaults to today)
-        
-        Returns:
-            int: Next queue number
+        Generate a unique lock ID for a given queue date.
+        Uses date as integer (YYYYMMDD) for PostgreSQL advisory lock.
         """
-        if queue_date is None:
-            queue_date = timezone.localdate()
-        
-        # Lock the rows to prevent race conditions
-        # Use select_for_update to ensure atomic read and increment
-        last_patient = (
-            Patient.objects
-            .filter(queue_date=queue_date)
-            .select_for_update()
-            .order_by('-queue_number')
-            .first()
-        )
-        
-        if last_patient:
-            return last_patient.queue_number + 1
-        else:
-            return 1
+        return int(queue_date.strftime('%Y%m%d'))
 
     @staticmethod
     @transaction.atomic
     def create_patient_with_queue(patient_data, queue_date=None):
         """
         Create a patient with automatic queue number assignment.
-        This method ensures thread-safe queue number generation.
+        Uses PostgreSQL advisory locks to ensure thread-safe queue number generation,
+        even when no patients exist for the date.
         
         Args:
             patient_data: Dictionary containing patient fields (name, age, phone, etc.)
@@ -63,8 +41,22 @@ class QueueService:
         if queue_date is None:
             queue_date = timezone.localdate()
         
-        # Get next queue number atomically
-        next_queue = QueueService.get_next_queue_number(queue_date)
+        lock_id = QueueService._get_lock_id(queue_date)
+        
+        # Acquire advisory lock for this date's queue
+        # This blocks other transactions trying to get the same lock
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT pg_advisory_xact_lock(%s)", [lock_id])
+        
+        # Now we have exclusive access to this date's queue
+        # Get the next queue number safely
+        last_queue = (
+            Patient.objects
+            .filter(queue_date=queue_date)
+            .aggregate(Max('queue_number'))['queue_number__max']
+        )
+        
+        next_queue = (last_queue or 0) + 1
         
         # Create the patient
         patient = Patient.objects.create(
@@ -73,6 +65,7 @@ class QueueService:
             **patient_data
         )
         
+        # Lock is automatically released at transaction end
         return patient
 
     @staticmethod
@@ -91,30 +84,13 @@ class QueueService:
         
         patients = Patient.objects.filter(queue_date=queue_date)
         
+        last_queue = patients.aggregate(Max('queue_number'))['queue_number__max'] or 0
+        
         return {
             'total_patients': patients.count(),
             'waiting_patients': patients.filter(status=Patient.Status.WAITING).count(),
             'in_examination_patients': patients.filter(status=Patient.Status.IN_EXAMINATION).count(),
             'completed_patients': patients.filter(status=Patient.Status.COMPLETED).count(),
-            'last_queue_number': patients.aggregate(Max('queue_number'))['queue_number__max'] or 0,
-            'next_queue_number': QueueService._get_next_queue_number_no_lock(queue_date),
+            'last_queue_number': last_queue,
+            'next_queue_number': last_queue + 1,
         }
-
-    @staticmethod
-    def _get_next_queue_number_no_lock(queue_date):
-        """
-        Get next queue number without locking (for read-only operations like display).
-        
-        Args:
-            queue_date: Date for the queue
-        
-        Returns:
-            int: Next queue number (estimated)
-        """
-        last_queue = (
-            Patient.objects
-            .filter(queue_date=queue_date)
-            .aggregate(Max('queue_number'))['queue_number__max']
-        )
-        
-        return (last_queue or 0) + 1
