@@ -5,7 +5,6 @@ Views for doctor-specific functionality: patient files, notes, attachments, and 
 from datetime import datetime
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
@@ -20,7 +19,6 @@ from patients.models import Patient
 from patients.services import QueueService
 
 
-@login_required
 @doctor_required
 def doctor_patients(request):
     """
@@ -45,7 +43,6 @@ def doctor_patients(request):
     return render(request, "patients/doctor_patients.html", context)
 
 
-@login_required
 @doctor_required
 def doctor_patient_file(request):
     """
@@ -97,7 +94,6 @@ def doctor_patient_file(request):
     return render(request, "patients/doctor_patient_file.html", context)
 
 
-@login_required
 @doctor_required
 def create_patient_file(request, patient_id):
     """
@@ -120,7 +116,6 @@ def create_patient_file(request, patient_id):
     return redirect("doctor_patient_detail", patient_id=patient.id)
 
 
-@login_required
 @doctor_required
 def doctor_patient_detail(request, patient_id):
     """
@@ -146,7 +141,6 @@ def doctor_patient_detail(request, patient_id):
     return render(request, "patients/doctor_patient_detail.html", context)
 
 
-@login_required
 @doctor_required
 def doctor_patient_add_note(request, patient_id):
     """
@@ -173,7 +167,6 @@ def doctor_patient_add_note(request, patient_id):
     return redirect("doctor_patient_detail", patient_id=patient.id)
 
 
-@login_required
 @doctor_required
 def doctor_patient_add_attachment(request, patient_id):
     """
@@ -200,7 +193,6 @@ def doctor_patient_add_attachment(request, patient_id):
     return redirect("doctor_patient_detail", patient_id=patient.id)
 
 
-@login_required
 @doctor_required
 def doctor_reports(request):
     """

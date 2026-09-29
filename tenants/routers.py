@@ -19,8 +19,8 @@ def clear_current_tenant_db():
 
 class TenantDatabaseRouter:
     """
-    يحدد أي App يشتغل على Control DB
-    وأي App يشتغل على Tenant DB.
+    Routes database operations to either control DB or tenant DB.
+    SECURITY: Tenant-only apps MUST NOT operate without tenant context.
     """
 
     DEFAULT_ONLY_APPS = {
@@ -50,7 +50,14 @@ class TenantDatabaseRouter:
             return tenant_db if tenant_db else "default"
 
         if app_label in self.TENANT_ONLY_APPS:
-            return get_current_tenant_db()
+            tenant_db = get_current_tenant_db()
+            # SECURITY: Fail closed - never allow tenant apps on default DB
+            if not tenant_db:
+                raise RuntimeError(
+                    f"SECURITY: Attempted to read {app_label}.{model.__name__} "
+                    "without tenant context. This could expose cross-tenant data."
+                )
+            return tenant_db
 
         return None
 
@@ -65,7 +72,14 @@ class TenantDatabaseRouter:
             return tenant_db if tenant_db else "default"
 
         if app_label in self.TENANT_ONLY_APPS:
-            return get_current_tenant_db()
+            tenant_db = get_current_tenant_db()
+            # SECURITY: Fail closed - never allow tenant apps on default DB
+            if not tenant_db:
+                raise RuntimeError(
+                    f"SECURITY: Attempted to write {app_label}.{model.__name__} "
+                    "without tenant context. This could cause data corruption."
+                )
+            return tenant_db
 
         return None
 

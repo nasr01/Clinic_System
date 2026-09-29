@@ -3,7 +3,6 @@ Secretary-Specific Account Views
 Dashboard and attendance management for secretaries
 """
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
@@ -13,7 +12,6 @@ from patients.models import Patient
 from patients.services import NotificationService, QueueService
 
 
-@login_required
 @secretary_required
 def secretary_dashboard(request):
     """
@@ -40,7 +38,6 @@ def secretary_dashboard(request):
     return render(request, "secretary/dashboard.html", context)
 
 
-@login_required
 @secretary_required
 def secretary_attendance(request):
     """

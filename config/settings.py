@@ -164,3 +164,23 @@ AUTHENTICATION_BACKENDS = [
 DATABASE_ROUTERS = [
     "tenants.routers.TenantDatabaseRouter",
 ]
+
+# Session Security
+SESSION_COOKIE_HTTPONLY = True  # Prevents JavaScript access to session cookie
+SESSION_COOKIE_SECURE = not DEBUG  # Use secure cookies in production (HTTPS only)
+SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keep session after browser close
+SESSION_COOKIE_AGE = 86400  # 24 hours
+
+# CSRF Protection
+CSRF_COOKIE_HTTPONLY = True  # Prevents JavaScript access to CSRF cookie
+CSRF_COOKIE_SECURE = not DEBUG  # Use secure cookies in production (HTTPS only)
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Security Headers (will take effect when using HTTPS)
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'  # Prevent clickjacking
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Password Reset Timeout (1 day)
+PASSWORD_RESET_TIMEOUT = 86400

@@ -2,7 +2,6 @@
 Notification Views
 Views for doctor notification management
 """
-from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
 
@@ -10,7 +9,6 @@ from accounts.decorators import doctor_required
 from patients.models import Notification
 
 
-@login_required
 @doctor_required
 def doctor_notifications(request):
     """
@@ -30,7 +28,6 @@ def doctor_notifications(request):
     return render(request, "patients/doctor_notifications.html", context)
 
 
-@login_required
 @doctor_required
 def mark_notification_read(request, notification_id):
     """
@@ -51,7 +48,6 @@ def mark_notification_read(request, notification_id):
         )
 
 
-@login_required
 @doctor_required
 def mark_all_notifications_read(request):
     """
@@ -65,7 +61,6 @@ def mark_all_notifications_read(request):
     return JsonResponse({"success": True})
 
 
-@login_required
 @doctor_required
 def notification_count(request):
     """
@@ -79,7 +74,6 @@ def notification_count(request):
     return JsonResponse({"count": count})
 
 
-@login_required
 @doctor_required
 def delete_notification(request, notification_id):
     """
@@ -106,7 +100,6 @@ def delete_notification(request, notification_id):
         )
 
 
-@login_required
 @doctor_required
 def clear_read_notifications(request):
     """

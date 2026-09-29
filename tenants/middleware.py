@@ -61,6 +61,7 @@ class TenantMiddleware:
 
         tenant = None
 
+        # Priority 1: Try to get tenant from host/subdomain
         if slug_from_host:
             try:
                 tenant = (
@@ -74,7 +75,9 @@ class TenantMiddleware:
             except Tenant.DoesNotExist:
                 tenant = None
 
-        if tenant is None:
+        # Priority 2: Fallback to session ONLY if no host-based tenant found
+        # AND if there's no subdomain mismatch
+        if tenant is None and not slug_from_host:
             tenant_id = None
             try:
                 tenant_id = request.session.get("tenant_id")
@@ -97,6 +100,23 @@ class TenantMiddleware:
                 except Tenant.DoesNotExist:
                     tenant = None
 
+        # SECURITY: If host-based tenant found, verify session matches
+        # This prevents session reuse across tenants
+        if tenant and slug_from_host:
+            session_tenant_id = None
+            try:
+                session_tenant_id = request.session.get("tenant_id")
+            except Exception:
+                pass
+            
+            # If session has a different tenant_id, clear it
+            if session_tenant_id and session_tenant_id != tenant.id:
+                try:
+                    request.session.flush()
+                except Exception:
+                    pass
+
+        # Fail closed: No tenant context = reject request
         if tenant is None:
             clear_current_tenant_db()
             request.tenant = None

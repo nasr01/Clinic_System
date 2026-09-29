@@ -3,7 +3,6 @@ Secretary Views
 Views for secretary-specific functionality: patient registration and queue management
 """
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
@@ -13,7 +12,6 @@ from patients.models import Patient
 from patients.services import NotificationService, QueueService
 
 
-@login_required
 @secretary_required
 def add_patient(request):
     """
@@ -71,7 +69,6 @@ def add_patient(request):
     return render(request, "patients/add_patient.html", context)
 
 
-@login_required
 @secretary_required
 def secretary_patients(request):
     """
@@ -96,7 +93,6 @@ def secretary_patients(request):
     return render(request, "patients/secretary_patients.html", context)
 
 
-@login_required
 @secretary_required
 def start_examination(request, patient_id):
     """
@@ -122,7 +118,6 @@ def start_examination(request, patient_id):
     return redirect("secretary_patients")
 
 
-@login_required
 @secretary_required
 def complete_examination(request, patient_id):
     """

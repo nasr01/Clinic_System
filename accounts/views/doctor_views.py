@@ -3,7 +3,6 @@ Doctor-Specific Account Views
 Dashboard and employee management for doctors
 """
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
@@ -13,7 +12,6 @@ from patients.models import Patient
 from patients.services import QueueService
 
 
-@login_required
 @doctor_required
 def doctor_dashboard(request):
     """
@@ -40,7 +38,6 @@ def doctor_dashboard(request):
     return render(request, "doctor/dashboard.html", context)
 
 
-@login_required
 @doctor_required
 def doctor_employees(request):
     """
